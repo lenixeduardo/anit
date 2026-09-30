@@ -1,11 +1,13 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
+import { supabaseConfig } from "./supabase-config";
+
 let _instance: SupabaseClient | null = null;
 
 function getInstance(): SupabaseClient {
   if (!_instance) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zzjnbsckeottbnyfvhea.supabase.co';
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6am5ic2NrZW90dGJueWZ2aGVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTU5NjIsImV4cCI6MjA5NjA5MTk2Mn0.vkSvxopKxgIqYmYZk3g2xYqgl65PBNEE0QKdtrKjAPo';
+    const url = supabaseConfig.url;
+    const key = supabaseConfig.key;
     _instance = createClient(url, key);
   }
   return _instance;
@@ -19,3 +21,7 @@ export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
     return Reflect.get(getInstance(), prop, receiver);
   },
 });
+
+export function createAuthenticatedClient(token: string) {
+ return createClient(supabaseConfig.url, supabaseConfig.key, { global: { headers: { Authorization: "Bearer " + token } }, auth: { persistSession: false } });
+}

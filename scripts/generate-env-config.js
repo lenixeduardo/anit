@@ -8,6 +8,11 @@
  * build environment (set in Vercel project settings or .env.local).
  */
 const fs = require('fs');
+// Node 24 loads local variables without exposing server secrets in the output.
+for (const file of ['.env.local', '.env']) {
+  const envPath = require('path').join(process.cwd(), file);
+  if (fs.existsSync(envPath)) process.loadEnvFile(envPath);
+}
 const path = require('path');
 
 const FALLBACK_URL = 'https://zzjnbsckeottbnyfvhea.supabase.co';
@@ -17,7 +22,7 @@ const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 function sanitize(val) { return (val || '').trim().replace(/^<|>$/g, '').trim(); }
 
 const url = sanitize(process.env.NEXT_PUBLIC_SUPABASE_URL) || FALLBACK_URL;
-const key = sanitize(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) || FALLBACK_KEY;
+const key = sanitize(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) || FALLBACK_KEY;
 
 const content = [
   '/* Generated at build time by scripts/generate-env-config.js — do not edit manually */',

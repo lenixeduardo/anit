@@ -31,6 +31,7 @@ const mock = `window.supabase={createClient:()=>({auth:{getSession:async()=>({da
  const context=await browser.newContext();
  await context.route('**/*',route=>{
   const url=route.request().url();
+  if(url.endsWith('/auth-client.js'))return route.fulfill({contentType:'text/javascript',body:mock});
   if(url.startsWith(base))return route.continue();
   if(url.includes('cdn.jsdelivr.net/npm/@supabase/supabase-js'))return route.fulfill({contentType:'text/javascript',body:mock});
   return route.abort();
@@ -41,7 +42,7 @@ const mock = `window.supabase={createClient:()=>({auth:{getSession:async()=>({da
  async function loaded(){await page.waitForLoadState('domcontentloaded');await page.evaluate(async()=>{for(const im of document.images)im.loading='eager';await Promise.all([...document.images].map(im=>im.decode().catch(()=>{})));});}
  for(const width of [320,390,768,1440]){
   await page.setViewportSize({width,height:960});
-  for(const file of ['store.html','colecoes.html','produtos.html','produto.html?id=test-bong','carrinho.html','login.html','perfil.html','compra-confirmada.html']){
+  for(const file of ['store.html','colecoes.html','produtos.html','produto.html?id=test-bong','carrinho.html','login.html','perfil.html','checkout.html']){
    await page.goto(base+'/'+file);await loaded();
    if(['store.html','produtos.html'].includes(file))await page.locator('.product-card').first().waitFor();
    if(file.startsWith('produto.'))await page.locator('.detail-copy').waitFor();
