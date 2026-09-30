@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { supabase, createAuthenticatedClient } from "@/lib/supabase";
 import QRCode from "qrcode";
 import { createPixPayload, PIX_KEY } from "@/lib/pix";
+import { shippingEnabled } from "@/lib/shipping-config";
 
 export async function POST(request: Request) {
  try {
@@ -13,8 +14,10 @@ export async function POST(request: Request) {
  if(authError || !user) return NextResponse.json({error:'Sessão expirada'}, {status:401});
  const body=await request.json();
  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.orderId||'') || !Array.isArray(body.items) || !body.items.length || body.items.length>100 || body.items.some((i:{id?:string;qty?:number})=>!i.id||!Number.isInteger(i.qty)||Number(i.qty)<1||Number(i.qty)>99)) return NextResponse.json({error:'Carrinho inválido. Revise os produtos'}, {status:400});
+ if(shippingEnabled && !/^[0-9a-f-]{36}$/i.test(body.shippingQuoteId||'')) return NextResponse.json({error:'Calcule e selecione o frete antes de gerar o Pix.'},{status:400});
  const client=createAuthenticatedClient(token);
- const {data,error}=await client.rpc('create_pix_order',{p_id:body.orderId,p_items:body.items.map((i:{id:string;qty:number})=>({id:i.id,qty:i.qty})),p_coupon:body.coupon||''});
+ const {data,error}=await client.rpc('create_pix_order',{p_id:body.orderId,p_items:body.items.map((i:{id:string;qty:number})=>({id:i.id,qty:i.qty})),p_coupon:body.coupon||'',...(shippingEnabled ? {p_shipping_quote:body.shippingQuoteId} : {})});
+ if(error?.message === 'ADDRESS_REQUIRED') return NextResponse.json({error:'Cadastre e salve um endereço completo antes de gerar o Pix. Pedidos antigos sem endereço devem ser refeitos pelo carrinho.',code:'ADDRESS_REQUIRED'},{status:422});
  if(error) return NextResponse.json({error:error.code==='PGRST202'?'Checkout Pix ainda não habilitado no banco da loja.':'Não foi possível criar o pedido. Confira estoque, cupom e sua conta.',code:error.code==='PGRST202'?'PIX_SETUP_REQUIRED':'ORDER_FAILED'},{status:error.code==='PGRST202'?503:400});
  const payload=createPixPayload(Math.round(Number(data.total)*100),data.orderId.replace(/-/g,'').slice(0,25));
  const qr=await QRCode.toDataURL(payload,{width:512,margin:4,errorCorrectionLevel:'M'});
@@ -41,7 +44,7 @@ export async function GET(request: Request) {
  if(!Number.isSafeInteger(offset)||offset<0||offset>1000000) return NextResponse.json({error:'Página inválida'},{status:400});
  const admin=params.get('scope')==='admin';
  if(admin&&!auth.admin) return NextResponse.json({error:'Acesso restrito ao administrador'},{status:403});
- let query=auth.client.from('orders').select('id,total,status,created_at,tracking_code,paid_at,shipped_at,delivered_at,profiles(name,email),order_items(id,quantity,price,products(name)),order_status_history(previous_status,status,created_at)').order('created_at',{ascending:false}).order('id',{ascending:false}).range(offset,offset+99);
+ let query=auth.client.from('orders').select('id,total,status,created_at,shipping_details,shipping_address,tracking_code,paid_at,shipped_at,delivered_at,profiles(name,email),order_items(id,quantity,price,products(name)),order_status_history(previous_status,status,created_at)').order('created_at',{ascending:false}).order('id',{ascending:false}).range(offset,offset+99);
  if(!admin) query=query.eq('user_id',auth.user.id);
  if(params.get('id')) query=query.eq('id',params.get('id'));
  const {data,error}=await query;
@@ -50,8 +53,9 @@ export async function GET(request: Request) {
  if(params.get('pix')==='1'&&data?.length===1){
  const order=data[0];
  if(order.status!=='pending') return NextResponse.json({error:'Este pedido não está aguardando Pix'},{status:409});
+ if(!order.shipping_address) return NextResponse.json({error:'Este pedido foi criado sem endereço. Salve seu endereço no perfil e refaça o pedido pelo carrinho.',code:'ADDRESS_REQUIRED'},{status:422});
  const payload=createPixPayload(Math.round(Number(order.total)*100),order.id.replace(/-/g,'').slice(0,25));
- return NextResponse.json({payload,qr:await QRCode.toDataURL(payload,{width:512,margin:4}),total:order.total});
+ return NextResponse.json({payload,qr:await QRCode.toDataURL(payload,{width:512,margin:4}),total:order.total,orderId:order.id,shippingAddress:order.shipping_address});
  }
  return NextResponse.json(data,{headers:{'Cache-Control':'no-store'}});
  } catch {return NextResponse.json({error:'Falha ao consultar pedidos'},{status:500});}

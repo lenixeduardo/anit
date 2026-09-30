@@ -307,12 +307,12 @@
 
     var subtotal = cart.reduce(function(a,i){ return a + parsePrice(i.price)*i.qty; },0);
     var discount = window._discount || 0;
-    var shipping = subtotal > 0 ? (subtotal >= 200 ? 0 : 18.90) : 0;
+    var shipping = 0;
     var total = subtotal - discount + shipping;
 
     subtotalEl.textContent = formatPrice(subtotal);
-    shippingEl.textContent = shipping === 0 ? (subtotal > 0 ? 'Grátis' : '—') : formatPrice(shipping);
-    shippingEl.style.color = shipping === 0 && subtotal > 0 ? 'var(--gold)' : '';
+    shippingEl.textContent = subtotal > 0 ? 'Calcular no checkout' : '—';
+    shippingEl.style.color = '';
     totalEl.textContent = formatPrice(total);
   }
 

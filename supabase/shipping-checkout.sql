@@ -1,5 +1,24 @@
--- Endereço obrigatório para novos pedidos. Preserva o histórico anterior.
+-- Aplicar antes de ativar SHIPPING_ENABLED=true.
 BEGIN;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS weight_kg numeric CHECK (weight_kg > 0);
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS height_cm numeric CHECK (height_cm > 0);
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS width_cm numeric CHECK (width_cm > 0);
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS length_cm numeric CHECK (length_cm > 0);
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_details jsonb;
+CREATE TABLE IF NOT EXISTS public.shipping_quotes (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL REFERENCES auth.users(id),
+ items jsonb NOT NULL, postal_code text NOT NULL CHECK (postal_code ~ '^[0-9]{8}$'),
+ service_id text NOT NULL CHECK (service_id IN ('1','2')), service_name text NOT NULL,
+ price numeric NOT NULL CHECK (price >= 0), delivery_days integer NOT NULL CHECK (delivery_days > 0),
+ expires_at timestamptz NOT NULL, sandbox boolean NOT NULL DEFAULT false
+);
+ALTER TABLE public.shipping_quotes ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.shipping_quotes FROM anon, authenticated;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='service_role') THEN
+ EXECUTE 'GRANT SELECT, INSERT, DELETE ON public.shipping_quotes TO service_role';
+END IF; END $$;
+DROP FUNCTION IF EXISTS public.create_pix_order(uuid,jsonb,text);
+-- Endereço obrigatório para novos pedidos. Preserva o histórico anterior.
 CREATE OR REPLACE FUNCTION public.is_valid_shipping_address(address jsonb)
 RETURNS boolean LANGUAGE sql IMMUTABLE SET search_path = public AS $$
   SELECT coalesce(jsonb_typeof(address) = 'object'
@@ -38,10 +57,11 @@ DROP TRIGGER IF EXISTS protect_order_address ON public.orders;
 CREATE TRIGGER protect_order_address BEFORE INSERT OR UPDATE ON public.orders
   FOR EACH ROW EXECUTE FUNCTION public.protect_order_address();
 
-CREATE OR REPLACE FUNCTION public.create_pix_order(p_id uuid, p_items jsonb, p_coupon text DEFAULT '')
+CREATE OR REPLACE FUNCTION public.create_pix_order(p_id uuid, p_items jsonb, p_coupon text DEFAULT '', p_shipping_quote uuid DEFAULT NULL)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   existing public.orders;
+  quote public.shipping_quotes;
   row_item jsonb;
   product public.products;
   address jsonb;
@@ -59,7 +79,7 @@ BEGIN
     IF NOT public.is_valid_shipping_address(existing.shipping_address) THEN
       RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'ADDRESS_REQUIRED';
     END IF;
-    RETURN jsonb_build_object('orderId', existing.id, 'total', existing.total, 'status', existing.status, 'shippingAddress', existing.shipping_address);
+    RETURN jsonb_build_object('orderId', existing.id, 'total', existing.total, 'status', existing.status, 'shippingDetails',existing.shipping_details,'shippingAddress', existing.shipping_address);
   END IF;
   SELECT shipping_address INTO address FROM public.profiles WHERE id = auth.uid() FOR SHARE;
   IF NOT public.is_valid_shipping_address(address) THEN
@@ -82,15 +102,19 @@ BEGIN
     normalized := normalized || jsonb_build_array(jsonb_build_object('id', product.id, 'qty', quantity, 'price', product.price));
   END LOOP;
   discount := CASE WHEN p_coupon = 'PRINCESS10' THEN round(subtotal * 0.1, 2) ELSE 0 END;
-  shipping := CASE WHEN subtotal >= 200 THEN 0 ELSE 18.90 END;
-  INSERT INTO public.orders(id, user_id, total, status, shipping_address)
-    VALUES(p_id, auth.uid(), subtotal - discount + shipping, 'pending', address);
+  SELECT * INTO quote FROM public.shipping_quotes WHERE id=p_shipping_quote AND user_id=auth.uid();
+  IF NOT FOUND OR quote.expires_at <= now() OR quote.sandbox THEN RAISE EXCEPTION 'Calcule e selecione um frete válido'; END IF;
+  IF quote.postal_code <> address->>'postal_code' THEN RAISE EXCEPTION 'Endereço alterado. Calcule o frete novamente'; END IF;
+  IF quote.items <> (SELECT jsonb_agg(jsonb_build_object('id',n->>'id','qty',(n->>'qty')::integer) ORDER BY n->>'id') FROM jsonb_array_elements(normalized) n) THEN RAISE EXCEPTION 'Carrinho alterado. Calcule o frete novamente'; END IF;
+  shipping := quote.price;
+  INSERT INTO public.orders(id, user_id, total, status, shipping_address, shipping_details)
+    VALUES(p_id, auth.uid(), subtotal - discount + shipping, 'pending', address, jsonb_build_object('quoteId',quote.id,'postalCode',quote.postal_code,'serviceId',quote.service_id,'name',quote.service_name,'price',quote.price,'days',quote.delivery_days));
   INSERT INTO public.order_items(order_id, product_id, quantity, price)
     SELECT p_id, (n->>'id')::uuid, (n->>'qty')::integer, (n->>'price')::numeric FROM jsonb_array_elements(normalized) n;
-  RETURN jsonb_build_object('orderId', p_id, 'total', subtotal - discount + shipping, 'subtotal', subtotal, 'discount', discount, 'shipping', shipping, 'status', 'pending', 'shippingAddress', address);
+  RETURN jsonb_build_object('orderId', p_id, 'total', subtotal - discount + shipping, 'subtotal', subtotal, 'discount', discount, 'shipping', shipping, 'shippingDetails',(SELECT shipping_details FROM public.orders WHERE id=p_id), 'status', 'pending', 'shippingAddress', address);
 END;
 $$;
-REVOKE ALL ON FUNCTION public.create_pix_order(uuid, jsonb, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.create_pix_order(uuid, jsonb, text) TO authenticated;
+REVOKE ALL ON FUNCTION public.create_pix_order(uuid, jsonb, text, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.create_pix_order(uuid, jsonb, text, uuid) TO authenticated;
 NOTIFY pgrst, 'reload schema';
 COMMIT;

@@ -38,6 +38,10 @@
     if (!order) { root.append(element('p', selected ? 'Pedido não encontrado ou indisponível nesta conta.' : 'Selecione um pedido para ver os detalhes.')); return; }
     root.append(element('h2', 'Pedido ' + order.id), element('p', labels[order.status] || order.status, 'pill'), element('p', 'Criado em ' + date(order.created_at)));
     if (admin) root.append(element('h3', 'Cliente'), element('p', (order.profiles?.name || 'Não informado') + ' · ' + (order.profiles?.email || 'E-mail não informado')));
+    const address = order.shipping_address;
+    root.append(element('h3', 'Endereço de entrega'));
+    if (address) root.append(element('p', address.recipient), element('p', address.street + ', ' + address.number + (address.complement ? ' · ' + address.complement : '')), element('p', address.neighborhood + ' · ' + address.city + ' / ' + address.state + ' · CEP ' + address.postal_code));
+    else root.append(element('p', 'Pedido antigo sem endereço registrado. Entre em contato com a loja para combinar a entrega.'));
     const items = element('ul');
     for (const item of order.order_items || []) items.append(element('li', item.quantity + ' × ' + (item.products?.name || 'Produto removido do catálogo') + ' · ' + money(item.price) + ' por unidade · ' + money(item.price * item.quantity)));
     root.append(element('h3', 'Itens'), items, element('strong', 'Total do pedido: ' + money(order.total)), element('p', 'Forma de pagamento: Pix'));

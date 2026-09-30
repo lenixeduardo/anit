@@ -90,7 +90,7 @@
   @media(max-width:900px){.profile-layout{grid-template-columns:1fr;}.sidebar{position:static;}.stats-grid{grid-template-columns:1fr 1fr;}}
   @media(max-width:560px){.wrap{padding:0 20px;}.stats-grid{grid-template-columns:1fr;}.order-header{flex-direction:column;}}
 </style>
-<link rel="icon" href="assets/anit/favicons/favicon.ico"><link rel="icon" type="image/svg+xml" href="assets/anit/favicons/favicon.svg"><link rel="stylesheet" href="anit.css"><script src="anit.js" defer></script></head>
+<link rel="icon" href="assets/anit/favicons/favicon.ico"><link rel="icon" type="image/svg+xml" href="assets/anit/favicons/favicon.svg"><link rel="stylesheet" href="anit.css"><script src="anit.js" defer></script><link rel="stylesheet" href="endereco.css"></head>
 <body class="anit-legacy">
 
 <header class="site-header" id="hdr">
@@ -138,7 +138,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             Favoritos
           </a>
-          <a href="#">
+          <a href="#endereco">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             Endereços
           </a>
@@ -152,6 +152,7 @@
 
       <!-- Main -->
       <main class="main-content">
+        <section id="endereco" class="address-panel" aria-label="Endereço de entrega"></section>
         <h2>Meus Pedidos</h2>
         <p class="section-sub">Acompanhe seus pedidos e rastreie suas encomendas</p>
 
@@ -312,5 +313,6 @@ window.logout = async function(){
   }
 };
 </script>
+<script src="endereco.js"></script>
 </body>
 </html>

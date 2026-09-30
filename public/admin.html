@@ -255,6 +255,7 @@
             <option value="destaque">Destaque</option>
           </select>
         </div>
+<div class="form-field full"><p>Frete: informe as medidas reais do produto embalado. Sem esses dados o produto não pode ser cotado.</p></div><div class="form-field"><label for="f-weight_kg">Peso embalado (kg)</label><input type="number" id="f-weight_kg" min="0.001" step="0.001" placeholder="Não cadastrado"></div><div class="form-field"><label for="f-height_cm">Altura (cm)</label><input type="number" id="f-height_cm" min="0.01" step="0.01" placeholder="Não cadastrado"></div><div class="form-field"><label for="f-width_cm">Largura (cm)</label><input type="number" id="f-width_cm" min="0.01" step="0.01" placeholder="Não cadastrado"></div><div class="form-field"><label for="f-length_cm">Comprimento (cm)</label><input type="number" id="f-length_cm" min="0.01" step="0.01" placeholder="Não cadastrado"></div>
         <div class="form-field full">
           <label>Descrição</label>
           <textarea id="f-desc" placeholder="Descreva o produto..."></textarea>
@@ -343,6 +344,10 @@ function loadProducts() {
           cat: p.category,
           price: 'R$ ' + parseFloat(p.price).toFixed(2).replace('.', ','),
           stock: p.stock,
+          weight_kg: p.weight_kg,
+          height_cm: p.height_cm,
+          width_cm: p.width_cm,
+          length_cm: p.length_cm,
           status: p.stock > 0 ? 'ativo' : 'inativo',
           desc: p.description,
           img: p.image_url || 'assets/produto-bong-cylinder.jpeg'
@@ -393,6 +398,10 @@ window.editProduct = function(id){
   document.getElementById('f-price').value = p.price.replace('R$ ','').replace(',', '.');
   document.getElementById('f-cat').value = p.cat;
   document.getElementById('f-stock').value = p.stock;
+  document.getElementById('f-weight_kg').value = p.weight_kg ?? '';
+  document.getElementById('f-height_cm').value = p.height_cm ?? '';
+  document.getElementById('f-width_cm').value = p.width_cm ?? '';
+  document.getElementById('f-length_cm').value = p.length_cm ?? '';
   document.getElementById('f-desc').value = p.desc||'';
   document.getElementById('modal').classList.add('open');
 }
@@ -424,6 +433,16 @@ window.saveProduct = async function(e){
   var stock = parseInt(document.getElementById('f-stock').value)||0;
   var desc = document.getElementById('f-desc').value;
 
+  var shippingMeasurements = {};
+  var measurementKeys = ['weight_kg','height_cm','width_cm','length_cm'];
+  var entered = measurementKeys.filter(function(key){return document.getElementById('f-'+key).value.trim() !== '';});
+  if (entered.length && entered.length !== 4) { alert('Preencha peso, altura, largura e comprimento para calcular o frete.'); return; }
+  for (var key of measurementKeys) {
+    var raw = document.getElementById('f-'+key).value.trim();
+    var value = raw ? Number(raw) : null;
+    if (value !== null && (!Number.isFinite(value) || value <= 0)) { alert('As medidas de frete precisam ser positivas.'); return; }
+    shippingMeasurements[key] = value;
+  }
   var productData = {
     name: name,
     price: price,
@@ -432,6 +451,8 @@ window.saveProduct = async function(e){
     description: desc,
     image_url: 'assets/produto-bong-cylinder.jpeg' // Padrão
   };
+
+  Object.assign(productData, shippingMeasurements);
 
   if(editId){
     const { error } = await supabaseClient
