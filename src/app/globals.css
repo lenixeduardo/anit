@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: #09090b;
+  color: #fafafa;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Float animation for hero card stack ─── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+.animate-float   { animation: float 4s ease-in-out infinite; }
+.animate-float-2 { animation: float 4s ease-in-out 1.4s infinite; }
+.animate-float-3 { animation: float 4s ease-in-out 2.8s infinite; }
+
+/* ─── Fade-in-up for hero text stagger ─── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.fade-in-up-0 { animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0s    both; }
+.fade-in-up-1 { animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both; }
+.fade-in-up-2 { animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both; }
+.fade-in-up-3 { animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.36s both; }
+
+/* ─── Pulse ring on heart button ─── */
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0   rgba(244, 63, 94, 0.45); }
+  70%  { box-shadow: 0 0 0 14px rgba(244, 63, 94, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(244, 63, 94, 0);    }
+}
+.animate-pulse-ring { animation: pulse-ring 2.2s ease-out infinite; }
+
+/* ─── Reduced motion: kill every animation ─── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-2,
+  .animate-float-3,
+  .fade-in-up-0,
+  .fade-in-up-1,
+  .fade-in-up-2,
+  .fade-in-up-3,
+  .animate-pulse-ring {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "screens": [
+    {
+      "file": "store.html",
+      "width": 320,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "colecoes.html",
+      "width": 320,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "produtos.html",
+      "width": 320,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "produto.html?id=test-bong",
+      "width": 320,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "carrinho.html",
+      "width": 320,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "login.html",
+      "width": 320,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "perfil.html",
+      "width": 320,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "compra-confirmada.html",
+      "width": 320,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "store.html",
+      "width": 390,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "colecoes.html",
+      "width": 390,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "produtos.html",
+      "width": 390,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "produto.html?id=test-bong",
+      "width": 390,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "carrinho.html",
+      "width": 390,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "login.html",
+      "width": 390,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "perfil.html",
+      "width": 390,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "compra-confirmada.html",
+      "width": 390,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "store.html",
+      "width": 768,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "colecoes.html",
+      "width": 768,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "produtos.html",
+      "width": 768,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "produto.html?id=test-bong",
+      "width": 768,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "carrinho.html",
+      "width": 768,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "login.html",
+      "width": 768,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "perfil.html",
+      "width": 768,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "compra-confirmada.html",
+      "width": 768,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "store.html",
+      "width": 1440,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "colecoes.html",
+      "width": 1440,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "produtos.html",
+      "width": 1440,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "produto.html?id=test-bong",
+      "width": 1440,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "carrinho.html",
+      "width": 1440,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "login.html",
+      "width": 1440,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "perfil.html",
+      "width": 1440,
+      "overflow": false,
+      "broken": []
+    },
+    {
+      "file": "compra-confirmada.html",
+      "width": 1440,
+      "overflow": false,
+      "broken": []
+    }
+  ],
+  "flows": [
+    "category and reload",
+    "accent-insensitive search",
+    "sorting",
+    "out of stock",
+    "favorites persistence",
+    "detail quantity",
+    "stock limit",
+    "legacy cart compatibility",
+    "cart persistence and removal",
+    "login tabs",
+    "missing product",
+    "catalog retry"
+  ],
+  "errors": [],
+  "externalRequests": "blocked; Supabase mocked; no live writes"
+}

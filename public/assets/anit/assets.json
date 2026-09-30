@@ -1,0 +1,63 @@
+{
+  "brand": {
+    "logo": "/assets/brand/anit-logo-areia.svg",
+    "compact": "/assets/brand/anit-logo-compacto-areia.svg",
+    "symbol": "/assets/brand/anit-simbolo.svg"
+  },
+  "categories": [
+    {
+      "slug": "bongs",
+      "label": "Bongs",
+      "icon": "/assets/icons/bongs.svg",
+      "desktop": "/assets/banners/bongs/desktop-1280.webp",
+      "mobile": "/assets/banners/bongs/mobile-960.webp",
+      "usage": "editorial-mockup",
+      "focus": 0.82
+    },
+    {
+      "slug": "macaricos",
+      "label": "Maçaricos",
+      "icon": "/assets/icons/macaricos.svg",
+      "desktop": "/assets/banners/macaricos/desktop-1280.webp",
+      "mobile": "/assets/banners/macaricos/mobile-960.webp",
+      "usage": "editorial-mockup",
+      "focus": 0.82
+    },
+    {
+      "slug": "acessorios",
+      "label": "Acessórios",
+      "icon": "/assets/icons/acessorios.svg",
+      "desktop": "/assets/banners/acessorios/desktop-1280.webp",
+      "mobile": "/assets/banners/acessorios/mobile-960.webp",
+      "usage": "editorial-mockup",
+      "focus": 0.82
+    },
+    {
+      "slug": "armazenamento",
+      "label": "Armazenamento",
+      "icon": "/assets/icons/armazenamento.svg",
+      "desktop": "/assets/banners/armazenamento/desktop-1280.webp",
+      "mobile": "/assets/banners/armazenamento/mobile-960.webp",
+      "usage": "editorial-mockup",
+      "focus": 1.0
+    },
+    {
+      "slug": "papelaria",
+      "label": "Papelaria",
+      "icon": "/assets/icons/papelaria.svg",
+      "desktop": "/assets/banners/papelaria/desktop-1280.webp",
+      "mobile": "/assets/banners/papelaria/mobile-960.webp",
+      "usage": "editorial-mockup",
+      "focus": 0.0
+    },
+    {
+      "slug": "limpeza",
+      "label": "Limpeza",
+      "icon": "/assets/icons/limpeza.svg",
+      "desktop": "/assets/banners/limpeza/desktop-1280.webp",
+      "mobile": "/assets/banners/limpeza/mobile-960.webp",
+      "usage": "editorial-mockup",
+      "focus": 0.0
+    }
+  ]
+}

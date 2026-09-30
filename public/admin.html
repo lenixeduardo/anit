@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Tynderella Store</title>
+<link rel="icon" type="image/png" href="assets/logo-sapatinho-transparent.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👠</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0B0B0F;--ink-2:#1A1A1F;--ink-3:#2A2A2F;--pink:#F286C6;--pink-soft:#F5A8D8;--gold:#EBD687;--silver:#C0C0C6;--cream:#F5F5F5;--ui:'Outfit',system-ui,sans-serif;--serif:'Playfair Display',serif;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--ink);color:var(--cream);font-family:var(--ui);-webkit-font-smoothing:antialiased;display:flex;min-height:100vh;}
+
+  /* Sidebar */
+  .admin-sidebar{width:240px;background:#000;border-right:1px solid rgba(242,134,198,.1);display:flex;flex-direction:column;padding:28px 20px;position:fixed;top:0;bottom:0;left:0;z-index:10;}
+  .admin-logo{display:flex;align-items:center;gap:10px;margin-bottom:36px;text-decoration:none;}
+  .admin-logo span{font-family:'Great Vibes',cursive;font-size:28px;color:var(--pink);}
+  .admin-badge{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);background:rgba(235,214,135,.1);border:1px solid rgba(235,214,135,.3);border-radius:999px;padding:3px 10px;margin-left:4px;}
+  .admin-nav{display:flex;flex-direction:column;gap:4px;flex:1;}
+  .admin-nav a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;text-decoration:none;font-size:14px;color:rgba(245,245,245,.55);transition:all .2s;}
+  .admin-nav a:hover,.admin-nav a.active{background:rgba(242,134,198,.1);color:var(--pink);}
+  .admin-nav a.active{font-weight:600;}
+  .nav-divider{height:1px;background:rgba(255,255,255,.07);margin:12px 0;}
+  .sidebar-bottom a{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;color:rgba(245,245,245,.4);text-decoration:none;transition:color .2s;border-radius:12px;}
+  .sidebar-bottom a:hover{color:var(--pink);}
+
+  /* Main */
+  .admin-main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 36px;border-bottom:1px solid rgba(255,255,255,.07);background:var(--ink-2);}
+  .topbar h1{font-family:var(--serif);font-size:22px;font-weight:700;}
+  .topbar-actions{display:flex;align-items:center;gap:14px;}
+  .btn-new{display:inline-flex;align-items:center;gap:8px;background:var(--pink);color:#0a0708;border:none;border-radius:999px;padding:10px 22px;font-family:var(--ui);font-weight:700;font-size:13px;letter-spacing:.06em;cursor:pointer;transition:background .2s,transform .2s;}
+  .btn-new:hover{background:var(--pink-soft);transform:scale(1.02);}
+  .content{padding:32px 36px;flex:1;}
+
+  /* Stats */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+  .stat{background:var(--ink-2);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px 22px;}
+  .stat-label{font-size:12px;color:rgba(245,245,245,.4);letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .stat-val{font-family:var(--ui);font-size:28px;font-weight:800;}
+  .stat-val.pink{color:var(--pink);}
+  .stat-val.gold{color:var(--gold);}
+  .stat-delta{font-size:12px;color:#46c878;margin-top:4px;}
+
+  /* Table */
+  .table-wrap{background:var(--ink-2);border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;margin-bottom:32px;}
+  .table-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.07);}
+  .table-header h3{font-size:16px;font-weight:700;}
+  .search-wrap{position:relative;}
+  .search-wrap input{background:var(--ink-3);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:9px 16px 9px 36px;font-family:var(--ui);font-size:13px;color:var(--cream);outline:none;width:220px;transition:border-color .2s;}
+  .search-wrap input:focus{border-color:rgba(242,134,198,.5);}
+  .search-wrap input::placeholder{color:rgba(245,245,245,.3);}
+  .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(245,245,245,.35);pointer-events:none;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:rgba(255,255,255,.03);}
+  th{padding:12px 20px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,245,245,.4);white-space:nowrap;}
+  td{padding:14px 20px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(242,134,198,.04);}
+  .prod-cell{display:flex;align-items:center;gap:12px;}
+  .prod-thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.08);}
+  .prod-name{font-weight:600;font-size:14px;}
+  .prod-cat{font-size:12px;color:rgba(245,245,245,.4);}
+  .price-val{color:var(--pink);font-weight:700;}
+  .badge{font-size:10px;font-weight:700;letter-spacing:.08em;border-radius:999px;padding:4px 10px;white-space:nowrap;}
+  .badge.ativo{background:rgba(70,200,120,.15);color:#46c878;border:1px solid rgba(70,200,120,.25);}
+  .badge.inativo{background:rgba(255,80,80,.1);color:#ff6b6b;border:1px solid rgba(255,80,80,.2);}
+  .badge.destaque{background:rgba(242,134,198,.15);color:var(--pink);border:1px solid rgba(242,134,198,.3);}
+  .row-actions{display:flex;gap:8px;}
+  .btn-action{background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 10px;font-family:var(--ui);font-size:12px;color:rgba(245,245,245,.6);cursor:pointer;transition:all .2s;}
+  .btn-action:hover{border-color:var(--pink);color:var(--pink);}
+  .btn-action.danger:hover{border-color:#ff6b6b;color:#ff6b6b;}
+
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s;}
+  .modal-overlay.open{opacity:1;pointer-events:all;}
+  .modal{background:var(--ink-2);border:1px solid rgba(242,134,198,.2);border-radius:24px;padding:36px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;transform:scale(.95);transition:transform .25s;}
+  .modal-overlay.open .modal{transform:scale(1);}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;}
+  .modal-header h2{font-family:var(--serif);font-size:22px;font-weight:700;}
+  .modal-close{background:none;border:none;color:rgba(245,245,245,.5);font-size:22px;cursor:pointer;line-height:1;padding:4px;transition:color .2s;}
+  .modal-close:hover{color:var(--pink);}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .form-field{display:flex;flex-direction:column;gap:7px;}
+  .form-field.full{grid-column:1/-1;}
+  .form-field label{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,245,245,.5);}
+  .form-field input,.form-field select,.form-field textarea{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 16px;font-family:var(--ui);font-size:14px;color:var(--cream);outline:none;transition:border-color .2s;width:100%;}
+  .form-field textarea{resize:vertical;min-height:88px;}
+  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:rgba(242,134,198,.6);}
+  .form-field input::placeholder,.form-field textarea::placeholder{color:rgba(245,245,245,.3);}
+  .form-field select option{background:var(--ink-2);}
+  .upload-area{border:2px dashed rgba(242,134,198,.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:border-color .2s;}
+  .upload-area:hover{border-color:rgba(242,134,198,.7);}
+  .upload-area p{font-size:13px;color:rgba(245,245,245,.4);margin-top:8px;}
+  .modal-footer{display:flex;gap:12px;justify-content:flex-end;margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);}
+  .btn-cancel{background:transparent;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:11px 24px;font-family:var(--ui);font-size:14px;color:rgba(245,245,245,.6);cursor:pointer;transition:all .2s;}
+  .btn-cancel:hover{border-color:rgba(242,134,198,.4);color:var(--pink);}
+  .btn-save{background:var(--pink);color:#0a0708;border:none;border-radius:999px;padding:11px 28px;font-family:var(--ui);font-weight:700;font-size:14px;cursor:pointer;transition:background .2s,transform .2s;}
+  .btn-save:hover{background:var(--pink-soft);transform:scale(1.02);}
+
+  /* Toast */
+  .toast{position:fixed;bottom:32px;right:32px;background:var(--ink-2);border:1px solid rgba(242,134,198,.3);border-radius:14px;padding:14px 22px;font-size:14px;font-weight:600;color:var(--cream);z-index:200;transform:translateY(20px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:10px;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast .ti{width:20px;height:20px;background:var(--pink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#0a0708;font-weight:900;flex-shrink:0;}
+
+  @media(max-width:1080px){.stats-row{grid-template-columns:repeat(2,1fr);}th:nth-child(4),td:nth-child(4){display:none;}}
+  @media(max-width:760px){.admin-sidebar{display:none;}.admin-main{margin-left:0;}.content{padding:20px;}}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="admin-sidebar">
+  <a class="admin-logo" href="store.html">
+    <span>Tynderella</span>
+    <span class="admin-badge" style="font-size:9px; letter-spacing:.1em; text-transform:none;">admin</span>
+  </a>
+  <nav class="admin-nav">
+    <a href="#" class="active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="#" class="active" style="background:rgba(242,134,198,.1);color:var(--pink);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Produtos
+    </a>
+    <a href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4h2l2.4 12.4a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L21 8H6"/><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></svg>
+      Pedidos
+    </a>
+    <a href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Clientes
+    </a>
+    <div class="nav-divider"></div>
+    <a href="#">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      Configurações
+    </a>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="perfil.html">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Meu Perfil
+    </a>
+    <a href="store.html">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>
+      Ver Loja
+    </a>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="admin-main">
+  <div class="topbar">
+    <h1>Gerenciar Produtos</h1>
+    <div class="topbar-actions">
+      <button class="btn-new" onclick="openModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Novo Produto
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Produtos ativos</div>
+        <div class="stat-val pink" id="stat-produtos">8</div>
+        <div class="stat-delta">↑ 2 este mês</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h2l2.4 12.4a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L21 8H6"/><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></svg> Pedidos hoje</div>
+        <div class="stat-val gold">12</div>
+        <div class="stat-delta">↑ 4 vs ontem</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> Clientes</div>
+        <div class="stat-val">347</div>
+        <div class="stat-delta">↑ 18 esta semana</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Receita mês</div>
+        <div class="stat-val pink">R$4.2k</div>
+        <div class="stat-delta">↑ 23% vs mês anterior</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <h3>Catálogo de Produtos</h3>
+        <div class="search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" placeholder="Buscar produto..." oninput="filterTable(this.value)">
+        </div>
+      </div>
+      <table id="prod-table">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Categoria</th>
+            <th>Preço</th>
+            <th>Estoque</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo/Editar Produto -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Novo Produto</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <form onsubmit="saveProduct(event)">
+      <div class="form-grid">
+        <div class="form-field full">
+          <label>Nome do produto</label>
+          <input type="text" id="f-name" placeholder="Ex: Bong Crystal Rose" required>
+        </div>
+        <div class="form-field">
+          <label>Preço (R$)</label>
+          <input type="text" id="f-price" placeholder="0,00" required>
+        </div>
+        <div class="form-field">
+          <label>Categoria</label>
+          <select id="f-cat" required>
+            <option value="">Selecionar...</option>
+            <option value="bong">Bong</option>
+            <option value="macarico">Maçarico</option>
+            <option value="bowl">Bowl</option>
+            <option value="acessorio">Acessório</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Estoque</label>
+          <input type="number" id="f-stock" placeholder="0" min="0" required>
+        </div>
+        <div class="form-field">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="ativo">Ativo</option>
+            <option value="inativo">Inativo</option>
+            <option value="destaque">Destaque</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label>Descrição</label>
+          <textarea id="f-desc" placeholder="Descreva o produto..."></textarea>
+        </div>
+        <div class="form-field full">
+          <label>Imagem</label>
+          <div class="upload-area" onclick="document.getElementById('f-img').click()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(242,134,198,.5)" stroke-width="1.5" style="margin:0 auto;display:block;"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <p>Clique para selecionar imagem</p>
+            <input type="file" id="f-img" accept="image/*" style="display:none;" onchange="previewImg(this)">
+          </div>
+          <div id="img-preview" style="display:none;margin-top:10px;"><img id="preview-src" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid rgba(242,134,198,.3);"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn-save">Salvar produto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="ti">✓</div><span id="toast-msg">Produto salvo!</span></div>
+
+<!-- Supabase build-time config (generated by scripts/generate-env-config.js) -->
+<script src="/env-config.js"></script>
+<!-- Supabase Client JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+var products = [];
+var editId = null;
+var supabaseClient = null;
+
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Initialize Supabase client from build-time env (no API call needed)
+if (window.__SUPABASE_URL && window.__SUPABASE_ANON_KEY) {
+  supabaseClient = supabase.createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
+
+  (async function() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Check if user is admin
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!profile || profile.role !== 'admin') {
+      alert('Acesso negado: Somente administradores podem acessar esta página.');
+      window.location.href = 'perfil.html';
+      return;
+    }
+
+    // Load products
+    loadProducts();
+  })();
+} else {
+  window.location.href = 'login.html';
+}
+
+function loadProducts() {
+  supabaseClient.from('products').select('*').order('name').then(function(result) {
+    var data = result.data;
+    var error = result.error;
+    if (error) { console.error('Erro ao carregar produtos:', error); return; }
+    if (Array.isArray(data)) {
+      products = data.map(function(p) {
+        return {
+          id: p.id,
+          name: p.name,
+          cat: p.category,
+          price: 'R$ ' + parseFloat(p.price).toFixed(2).replace('.', ','),
+          stock: p.stock,
+          status: p.stock > 0 ? 'ativo' : 'inativo',
+          desc: p.description,
+          img: p.image_url || 'assets/produto-bong-cylinder.jpeg'
+        };
+      });
+      renderTable();
+    }
+  });
+}
+
+function renderTable(data){
+  var tbody = document.getElementById('table-body');
+  var displayData = data || products;
+  tbody.innerHTML = displayData.map(function(p){
+    var statusClass = p.status === 'ativo' ? 'ativo' : p.status === 'destaque' ? 'destaque' : 'inativo';
+    var statusLabel = p.status === 'ativo' ? 'Ativo' : p.status === 'destaque' ? 'Destaque' : 'Inativo';
+    var catLabel = {bong:'Bong',macarico:'Maçarico',bowl:'Bowl',acessorio:'Acessório'}[p.cat]||p.cat;
+    return '<tr>'+
+      '<td><div class="prod-cell"><img class="prod-thumb" src="'+escHtml(p.img)+'" alt="'+escHtml(p.name)+'"><div><div class="prod-name">'+escHtml(p.name)+'</div><div class="prod-cat" style="font-size: 10px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">'+escHtml(p.id)+'</div></div></div></td>'+
+      '<td>'+escHtml(catLabel)+'</td>'+
+      '<td class="price-val">'+escHtml(p.price)+'</td>'+
+      '<td>'+escHtml(p.stock)+' un.</td>'+
+      '<td><span class="badge '+escHtml(statusClass)+'">'+escHtml(statusLabel)+'</span></td>'+
+      '<td><div class="row-actions">'+
+        '<button class="btn-action" onclick="editProduct(\''+escHtml(p.id)+'\')">Editar</button>'+
+        '<button class="btn-action danger" onclick="deleteProduct(\''+escHtml(p.id)+'\')">Excluir</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+  document.getElementById('stat-produtos').textContent = products.filter(function(p){ return p.stock > 0; }).length;
+}
+
+function filterTable(q){
+  var filtered = products.filter(function(p){ return p.name.toLowerCase().includes(q.toLowerCase())||p.cat.includes(q.toLowerCase()); });
+  renderTable(filtered);
+}
+
+function openModal(){ editId = null; document.getElementById('modal-title').textContent='Novo Produto'; document.getElementById('modal').classList.add('open'); }
+defclose = function(){ document.getElementById('modal').classList.remove('open'); document.querySelector('form').reset(); document.getElementById('img-preview').style.display='none'; editId=null; }
+window.closeModal = defclose;
+
+window.editProduct = function(id){
+  var p = products.find(function(x){ return x.id===id; });
+  if(!p) return;
+  editId = id;
+  document.getElementById('modal-title').textContent = 'Editar Produto';
+  document.getElementById('f-name').value = p.name;
+  document.getElementById('f-price').value = p.price.replace('R$ ','').replace(',', '.');
+  document.getElementById('f-cat').value = p.cat;
+  document.getElementById('f-stock').value = p.stock;
+  document.getElementById('f-desc').value = p.desc||'';
+  document.getElementById('modal').classList.add('open');
+}
+
+window.deleteProduct = async function(id){
+  if(!confirm('Excluir este produto?')) return;
+  if (!supabaseClient) return;
+
+  const { error } = await supabaseClient
+    .from('products')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    alert('Erro ao excluir produto: ' + error.message);
+  } else {
+    showToast('Produto excluído');
+    loadProducts();
+  }
+}
+
+window.saveProduct = async function(e){
+  e.preventDefault();
+  if (!supabaseClient) return;
+
+  var name = document.getElementById('f-name').value;
+  var price = parseFloat(document.getElementById('f-price').value);
+  var cat = document.getElementById('f-cat').value;
+  var stock = parseInt(document.getElementById('f-stock').value)||0;
+  var desc = document.getElementById('f-desc').value;
+
+  var productData = {
+    name: name,
+    price: price,
+    category: cat,
+    stock: stock,
+    description: desc,
+    image_url: 'assets/produto-bong-cylinder.jpeg' // Padrão
+  };
+
+  if(editId){
+    const { error } = await supabaseClient
+      .from('products')
+      .update(productData)
+      .eq('id', editId);
+
+    if (error) {
+      alert('Erro ao salvar: ' + error.message);
+    } else {
+      showToast('Produto atualizado!');
+      loadProducts();
+      closeModal();
+    }
+  } else {
+    const { error } = await supabaseClient
+      .from('products')
+      .insert(productData);
+
+    if (error) {
+      alert('Erro ao criar: ' + error.message);
+    } else {
+      showToast('Produto criado!');
+      loadProducts();
+      closeModal();
+    }
+  }
+}
+
+function previewImg(input){
+  if(input.files&&input.files[0]){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      document.getElementById('preview-src').src = e.target.result;
+      document.getElementById('img-preview').style.display='block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function showToast(msg){
+  var t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); },2800);
+}
+
+document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+</script>
+</body>
+</html>
