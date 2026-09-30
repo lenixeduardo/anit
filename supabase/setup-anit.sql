@@ -65,7 +65,7 @@ ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 -- Função auxiliar (SECURITY DEFINER) para verificar se o usuário atual é admin.
 -- O SECURITY DEFINER evita recursão infinita ao consultar profiles dentro de uma policy de profiles.
 CREATE OR REPLACE FUNCTION public.is_current_user_admin()
-RETURNS BOOLEAN LANGUAGE SQL SECURITY DEFINER STABLE AS $$
+RETURNS BOOLEAN LANGUAGE SQL SECURITY DEFINER STABLE SET search_path = public AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
   );
@@ -145,7 +145,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -226,9 +226,7 @@ GRANT EXECUTE ON FUNCTION public.create_pix_order(uuid, jsonb, text) TO authenti
 -- Pedidos e preços só podem ser gravados pelas funções validadas.
 REVOKE INSERT,UPDATE,DELETE ON public.orders,public.order_items FROM anon,authenticated;
 
-COMMIT;
 
-BEGIN;
 ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_status_check;
 ALTER TABLE public.orders ADD CONSTRAINT orders_status_check CHECK (status IN ('pending','paid','shipped','delivered','cancelled'));
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS tracking_code text;
@@ -276,4 +274,15 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.update_order_status(uuid,text,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.update_order_status(uuid,text,text) TO authenticated;
+-- Explicit Data API grants, constrained by RLS policies.
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT SELECT ON public.products TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON public.products TO authenticated;
+GRANT SELECT, INSERT ON public.profiles TO authenticated;
+GRANT UPDATE (name, consented_at, privacy_policy_version, terms_accepted) ON public.profiles TO authenticated;
+GRANT SELECT ON public.orders, public.order_items, public.order_status_history, public.audit_logs TO authenticated;
+REVOKE ALL ON FUNCTION public.is_current_user_admin() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_current_user_admin() TO authenticated;
+REVOKE ALL ON FUNCTION public.handle_new_user(), public.protect_profile_identity() FROM PUBLIC, anon, authenticated;
+NOTIFY pgrst, 'reload schema';
 COMMIT;
