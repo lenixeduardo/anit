@@ -10,7 +10,7 @@ export function verifyMercadoPagoSignature(args: {
     return index < 0 ? ["", ""] : [part.slice(0, index).trim(), part.slice(index + 1).trim()];
   }));
   if (!/^\d+$/.test(parts.ts || "") || !/^[a-f0-9]{64}$/i.test(parts.v1 || "")) return false;
-  const ms = Number(parts.ts) * 1000;
+  const ms = Number(parts.ts);
   if (!Number.isFinite(ms) || Math.abs((args.now ?? Date.now()) - ms) > 5 * 60_000) return false;
   if (!args.dataId || !args.requestId || !args.secret) return false;
   const manifest = `id:${args.dataId.toLowerCase()};request-id:${args.requestId};ts:${parts.ts};`;
