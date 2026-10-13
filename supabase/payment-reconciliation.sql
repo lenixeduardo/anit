@@ -24,11 +24,14 @@ CREATE OR REPLACE FUNCTION public.confirm_provider_pix_payment(
 DECLARE payment public.payment_transactions; ord public.orders; item record;
 BEGIN
   IF auth.role() <> 'service_role' THEN RAISE EXCEPTION 'Privileged operation only'; END IF;
-  SELECT * INTO payment FROM public.payment_transactions
-  WHERE provider='mercadopago' AND provider_payment_id=p_provider_payment_id AND order_id=p_order_id
-  FOR UPDATE;
-  IF NOT FOUND THEN RAISE EXCEPTION 'Unrecognized provider payment'; END IF;
   SELECT * INTO ord FROM public.orders WHERE id=p_order_id FOR UPDATE;
+  IF NOT FOUND OR ord.total <> p_amount THEN RAISE EXCEPTION 'Amount mismatch'; END IF;
+  INSERT INTO public.payment_transactions(order_id,provider,provider_payment_id,amount)
+  VALUES(p_order_id,'mercadopago',p_provider_payment_id,p_amount)
+  ON CONFLICT (order_id,provider) DO NOTHING;
+  SELECT * INTO payment FROM public.payment_transactions
+  WHERE provider='mercadopago' AND provider_payment_id=p_provider_payment_id AND order_id=p_order_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Conflicting payment'; END IF;
   IF NOT FOUND OR ord.total <> p_amount OR payment.amount <> p_amount THEN
     RAISE EXCEPTION 'Payment amount mismatch';
   END IF;
