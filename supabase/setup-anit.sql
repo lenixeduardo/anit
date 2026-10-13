@@ -76,7 +76,7 @@ DROP POLICY IF EXISTS "Allow public read for profiles" ON public.profiles;
 CREATE POLICY "Allow users to read own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id OR public.is_current_user_admin());
 CREATE POLICY "Allow users to update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Allow system profile creation" ON public.profiles FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow own profile creation" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id AND role = 'user');
 
 -- Produtos: Qualquer um pode ler; Somente Admins podem alterar/inserir/deletar.
 CREATE POLICY "Allow public read for products" ON public.products FOR SELECT USING (true);
@@ -132,7 +132,7 @@ BEGIN
   INSERT INTO public.profiles (id, name, email, role, consented_at, privacy_policy_version, terms_accepted)
   VALUES (
     new.id,
-    COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', 'Princesa'),
+    COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', 'Cliente ANIT'),
     new.email,
     'user',
     CASE
@@ -154,6 +154,7 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 
 -- Aplicar depois do schema base. Apenas o backend privilegiado atribui admins.
 DROP POLICY IF EXISTS "Allow system profile creation" ON public.profiles;
+DROP POLICY IF EXISTS "Allow own profile creation" ON public.profiles;
 CREATE POLICY "Allow own profile creation" ON public.profiles FOR INSERT
   WITH CHECK (auth.uid() = id AND role = 'user');
 
