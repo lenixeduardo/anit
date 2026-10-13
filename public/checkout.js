@@ -60,8 +60,9 @@
       const data = await response.json();
       if (response.ok && paymentProvider === 'mercadopago' && Array.isArray(data) && data[0]?.status === 'paid') { location.href='pedidos.html'; return; }
       if (response.ok && paymentProvider === 'mercadopago' && Array.isArray(data) && data[0]?.status === 'pending') {
-        const cpf = sessionStorage.getItem('anit-payer-cpf');
-        if (cpf) { const paymentResponse = await fetch('/api/payments/mercadopago', {method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({orderId:saved.data.orderId,cpf})}); const payment=await paymentResponse.json(); if(paymentResponse.ok){ showPayment({...payment,...data[0],orderId:saved.data.orderId});return; } }
+        const paymentResponse = await fetch('/api/payments/mercadopago?orderId='+encodeURIComponent(saved.data.orderId), {headers:{Authorization:'Bearer '+session.access_token}});
+        const payment=await paymentResponse.json();
+        if(paymentResponse.ok){ showPayment({...payment,...data[0],orderId:saved.data.orderId});return; }
       }
       if (response.ok && paymentProvider !== 'mercadopago') { showPayment(data); return; }
       if (![200,404, 409, 422].includes(response.status)) throw new Error(data.error || 'Não foi possível recuperar seu pedido. Tente novamente.');
@@ -131,10 +132,11 @@
         }
         if (paymentProvider === 'mercadopago') {
           const cpf = $('payer-cpf').value.replace(/\D/g,'');
+          sessionStorage.setItem('anit-pix-order', JSON.stringify({ fingerprint, data: { orderId: data.orderId } }));
           const payResponse = await fetch('/api/payments/mercadopago',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({orderId:data.orderId,cpf})});
           const payData = await payResponse.json();
           if (!payResponse.ok) throw new Error(payData.error || 'Falha ao gerar cobrança. O pedido foi preservado.');
-          sessionStorage.setItem('anit-payer-cpf',cpf);
+          
           data.payload=payData.payload;data.qr=payData.qr;
         }
         showPayment(data);
