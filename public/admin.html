@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — Tynderella Store</title>
-<link rel="icon" type="image/png" href="assets/logo-sapatinho-transparent.png">
+<title>Admin — ANIT Headshop</title>
+
 <link rel="icon" href="assets/anit/favicons/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{--ink:#0B0B0F;--ink-2:#1A1A1F;--ink-3:#2A2A2F;--pink:#F286C6;--pink-soft:#F5A8D8;--gold:#EBD687;--silver:#C0C0C6;--cream:#F5F5F5;--ui:'Outfit',system-ui,sans-serif;--serif:'Playfair Display',serif;}
+  :root{--ink:#0B0B0F;--ink-2:#1A1A1F;--ink-3:#2A2A2F;--pink:#43B886;--pink-soft:#7CD5A8;--gold:#EBD687;--silver:#C0C0C6;--cream:#F5F5F5;--ui:'Inter',system-ui,sans-serif;--serif:'Inter',sans-serif;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--ink);color:var(--cream);font-family:var(--ui);-webkit-font-smoothing:antialiased;display:flex;min-height:100vh;}
 
   /* Sidebar */
-  .admin-sidebar{width:240px;background:#000;border-right:1px solid rgba(242,134,198,.1);display:flex;flex-direction:column;padding:28px 20px;position:fixed;top:0;bottom:0;left:0;z-index:10;}
+  .admin-sidebar{width:240px;background:#000;border-right:1px solid rgba(67,184,134,.1);display:flex;flex-direction:column;padding:28px 20px;position:fixed;top:0;bottom:0;left:0;z-index:10;}
   .admin-logo{display:flex;align-items:center;gap:10px;margin-bottom:36px;text-decoration:none;}
-  .admin-logo span{font-family:'Great Vibes',cursive;font-size:28px;color:var(--pink);}
+  .admin-logo span{font-family:'Inter',sans-serif;font-size:28px;color:var(--pink);}
   .admin-badge{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);background:rgba(235,214,135,.1);border:1px solid rgba(235,214,135,.3);border-radius:999px;padding:3px 10px;margin-left:4px;}
   .admin-nav{display:flex;flex-direction:column;gap:4px;flex:1;}
   .admin-nav a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;text-decoration:none;font-size:14px;color:rgba(245,245,245,.55);transition:all .2s;}
-  .admin-nav a:hover,.admin-nav a.active{background:rgba(242,134,198,.1);color:var(--pink);}
+  .admin-nav a:hover,.admin-nav a.active{background:rgba(67,184,134,.1);color:var(--pink);}
   .admin-nav a.active{font-weight:600;}
   .nav-divider{height:1px;background:rgba(255,255,255,.07);margin:12px 0;}
   .sidebar-bottom a{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;color:rgba(245,245,245,.4);text-decoration:none;transition:color .2s;border-radius:12px;}
@@ -51,7 +51,7 @@
   .table-header h3{font-size:16px;font-weight:700;}
   .search-wrap{position:relative;}
   .search-wrap input{background:var(--ink-3);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:9px 16px 9px 36px;font-family:var(--ui);font-size:13px;color:var(--cream);outline:none;width:220px;transition:border-color .2s;}
-  .search-wrap input:focus{border-color:rgba(242,134,198,.5);}
+  .search-wrap input:focus{border-color:rgba(67,184,134,.5);}
   .search-wrap input::placeholder{color:rgba(245,245,245,.3);}
   .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(245,245,245,.35);pointer-events:none;}
   table{width:100%;border-collapse:collapse;}
@@ -59,7 +59,7 @@
   th{padding:12px 20px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,245,245,.4);white-space:nowrap;}
   td{padding:14px 20px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.05);}
   tr:last-child td{border-bottom:none;}
-  tr:hover td{background:rgba(242,134,198,.04);}
+  tr:hover td{background:rgba(67,184,134,.04);}
   .prod-cell{display:flex;align-items:center;gap:12px;}
   .prod-thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,.08);}
   .prod-name{font-weight:600;font-size:14px;}
@@ -68,7 +68,7 @@
   .badge{font-size:10px;font-weight:700;letter-spacing:.08em;border-radius:999px;padding:4px 10px;white-space:nowrap;}
   .badge.ativo{background:rgba(70,200,120,.15);color:#46c878;border:1px solid rgba(70,200,120,.25);}
   .badge.inativo{background:rgba(255,80,80,.1);color:#ff6b6b;border:1px solid rgba(255,80,80,.2);}
-  .badge.destaque{background:rgba(242,134,198,.15);color:var(--pink);border:1px solid rgba(242,134,198,.3);}
+  .badge.destaque{background:rgba(67,184,134,.15);color:var(--pink);border:1px solid rgba(67,184,134,.3);}
   .row-actions{display:flex;gap:8px;}
   .btn-action{background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 10px;font-family:var(--ui);font-size:12px;color:rgba(245,245,245,.6);cursor:pointer;transition:all .2s;}
   .btn-action:hover{border-color:var(--pink);color:var(--pink);}
@@ -77,7 +77,7 @@
   /* Modal */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s;}
   .modal-overlay.open{opacity:1;pointer-events:all;}
-  .modal{background:var(--ink-2);border:1px solid rgba(242,134,198,.2);border-radius:24px;padding:36px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;transform:scale(.95);transition:transform .25s;}
+  .modal{background:var(--ink-2);border:1px solid rgba(67,184,134,.2);border-radius:24px;padding:36px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;transform:scale(.95);transition:transform .25s;}
   .modal-overlay.open .modal{transform:scale(1);}
   .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;}
   .modal-header h2{font-family:var(--serif);font-size:22px;font-weight:700;}
@@ -89,20 +89,20 @@
   .form-field label{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(245,245,245,.5);}
   .form-field input,.form-field select,.form-field textarea{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 16px;font-family:var(--ui);font-size:14px;color:var(--cream);outline:none;transition:border-color .2s;width:100%;}
   .form-field textarea{resize:vertical;min-height:88px;}
-  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:rgba(242,134,198,.6);}
+  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:rgba(67,184,134,.6);}
   .form-field input::placeholder,.form-field textarea::placeholder{color:rgba(245,245,245,.3);}
   .form-field select option{background:var(--ink-2);}
-  .upload-area{border:2px dashed rgba(242,134,198,.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:border-color .2s;}
-  .upload-area:hover{border-color:rgba(242,134,198,.7);}
+  .upload-area{border:2px dashed rgba(67,184,134,.3);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:border-color .2s;}
+  .upload-area:hover{border-color:rgba(67,184,134,.7);}
   .upload-area p{font-size:13px;color:rgba(245,245,245,.4);margin-top:8px;}
   .modal-footer{display:flex;gap:12px;justify-content:flex-end;margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);}
   .btn-cancel{background:transparent;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:11px 24px;font-family:var(--ui);font-size:14px;color:rgba(245,245,245,.6);cursor:pointer;transition:all .2s;}
-  .btn-cancel:hover{border-color:rgba(242,134,198,.4);color:var(--pink);}
+  .btn-cancel:hover{border-color:rgba(67,184,134,.4);color:var(--pink);}
   .btn-save{background:var(--pink);color:#0a0708;border:none;border-radius:999px;padding:11px 28px;font-family:var(--ui);font-weight:700;font-size:14px;cursor:pointer;transition:background .2s,transform .2s;}
   .btn-save:hover{background:var(--pink-soft);transform:scale(1.02);}
 
   /* Toast */
-  .toast{position:fixed;bottom:32px;right:32px;background:var(--ink-2);border:1px solid rgba(242,134,198,.3);border-radius:14px;padding:14px 22px;font-size:14px;font-weight:600;color:var(--cream);z-index:200;transform:translateY(20px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:10px;}
+  .toast{position:fixed;bottom:32px;right:32px;background:var(--ink-2);border:1px solid rgba(67,184,134,.3);border-radius:14px;padding:14px 22px;font-size:14px;font-weight:600;color:var(--cream);z-index:200;transform:translateY(20px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:10px;}
   .toast.show{transform:translateY(0);opacity:1;}
   .toast .ti{width:20px;height:20px;background:var(--pink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#0a0708;font-weight:900;flex-shrink:0;}
 
@@ -115,7 +115,7 @@
 <!-- Sidebar -->
 <aside class="admin-sidebar">
   <a class="admin-logo" href="store.html">
-    <span>Tynderella</span>
+    <span>ANIT</span>
     <span class="admin-badge" style="font-size:9px; letter-spacing:.1em; text-transform:none;">admin</span>
   </a>
   <nav class="admin-nav">
@@ -123,7 +123,7 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
     </a>
-    <a href="#" class="active" style="background:rgba(242,134,198,.1);color:var(--pink);">
+    <a href="#" class="active" style="background:rgba(67,184,134,.1);color:var(--pink);">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
       Produtos
     </a>
@@ -170,7 +170,7 @@
     <div class="stats-row">
       <div class="stat">
         <div class="stat-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Produtos ativos</div>
-        <div class="stat-val pink" id="stat-produtos">8</div>
+        <div class="stat-val pink" id="stat-produtos">0</div>
         <div class="stat-delta">↑ 2 este mês</div>
       </div>
       <div class="stat">
@@ -185,7 +185,7 @@
       </div>
       <div class="stat">
         <div class="stat-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Receita mês</div>
-        <div class="stat-val pink">R$4.2k</div>
+        <div class="stat-val pink">R$0,00</div>
         <div class="stat-delta">↑ 23% vs mês anterior</div>
       </div>
     </div>
@@ -263,11 +263,11 @@
         <div class="form-field full">
           <label>Imagem</label>
           <div class="upload-area" onclick="document.getElementById('f-img').click()">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(242,134,198,.5)" stroke-width="1.5" style="margin:0 auto;display:block;"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(67,184,134,.5)" stroke-width="1.5" style="margin:0 auto;display:block;"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
             <p>Clique para selecionar imagem</p>
             <input type="file" id="f-img" accept="image/*" style="display:none;" onchange="previewImg(this)">
           </div>
-          <div id="img-preview" style="display:none;margin-top:10px;"><img id="preview-src" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid rgba(242,134,198,.3);"></div>
+          <div id="img-preview" style="display:none;margin-top:10px;"><img id="preview-src" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid rgba(67,184,134,.3);"></div>
         </div>
       </div>
       <div class="modal-footer">
