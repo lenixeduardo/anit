@@ -4,15 +4,31 @@ on:
     branches: [main, chore/fase-1-fundacao-anit]
   push:
     branches: [feat/fase-2-pagamentos]
+permissions:
+  contents: write
 jobs:
   static-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
+      - name: Synchronize dependency lockfile
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Commit lockfile correction on phase branch
+        if: github.event_name == 'push'
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config user.name "github-actions[bot]"
+            git add package-lock.json
+            git commit -m "fix(deps): sync npm lockfile"
+            git push
+          fi
       - run: npm ci
       - run: npm run lint
       - run: npx tsc --noEmit
