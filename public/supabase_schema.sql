@@ -1,3 +1,6 @@
+-- LEGADO / NÃO APLICAR EM PRODUÇÃO ANIT.
+-- Este arquivo contém produtos fictícios e schema antigo. Utilize supabase/setup-anit.sql
+-- para novos projetos; para projetos existentes, consulte docs/fase-1-fundacao.md.
 -- 1. Habilitar a extensão uuid-ossp
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
