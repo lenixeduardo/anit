@@ -1,0 +1,19 @@
+name: ANIT quality checks
+on:
+  pull_request:
+    branches: [main, chore/fase-1-fundacao-anit]
+  push:
+    branches: [feat/fase-2-pagamentos]
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run build
