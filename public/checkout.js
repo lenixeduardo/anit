@@ -55,6 +55,7 @@
     // User identity and version prevent old or other-account caches from being reused.
     const fingerprint = JSON.stringify({ version: 3, paymentProvider, userId: session.user.id, shippingEnabled, cart, coupon: sessionStorage.getItem('anit-checkout-coupon') || '' });
     const saved = JSON.parse(sessionStorage.getItem('anit-pix-order') || 'null');
+    let retryExistingOrder = false;
     if (saved?.fingerprint === fingerprint && saved.data?.orderId) {
       const response = await fetch('/api/orders?id=' + encodeURIComponent(saved.data.orderId) + (paymentProvider === 'mercadopago' ? '' : '&pix=1'), { headers: { Authorization: 'Bearer ' + session.access_token } });
       const data = await response.json();
@@ -63,10 +64,11 @@
         const paymentResponse = await fetch('/api/payments/mercadopago?orderId='+encodeURIComponent(saved.data.orderId), {headers:{Authorization:'Bearer '+session.access_token}});
         const payment=await paymentResponse.json();
         if(paymentResponse.ok){ showPayment({...payment,...data[0],orderId:saved.data.orderId});return; }
+        if(paymentResponse.status===404){retryExistingOrder=true;} else {throw new Error(payment.error || 'Não foi possível recuperar o pagamento.');}
       }
       if (response.ok && paymentProvider !== 'mercadopago') { showPayment(data); return; }
       if (![200,404, 409, 422].includes(response.status)) throw new Error(data.error || 'Não foi possível recuperar seu pedido. Tente novamente.');
-      sessionStorage.removeItem('anit-pix-order'); sessionStorage.removeItem('anit-pix-attempt');
+      if(!retryExistingOrder){sessionStorage.removeItem('anit-pix-order');sessionStorage.removeItem('anit-pix-attempt');}
     }
     const response = await fetch('/api/products');
     if (!response.ok) throw new Error('Não foi possível consultar os produtos. Recarregue a página.');
