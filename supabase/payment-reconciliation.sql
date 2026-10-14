@@ -55,7 +55,7 @@ REVOKE ALL ON FUNCTION public.confirm_provider_pix_payment(text,uuid,numeric) FR
 GRANT EXECUTE ON FUNCTION public.confirm_provider_pix_payment(text,uuid,numeric) TO service_role;
 CREATE OR REPLACE FUNCTION public.cancel_provider_pix_payment(
   p_provider_payment_id text, p_order_id uuid, p_amount numeric
-) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $
+) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE payment public.payment_transactions; ord public.orders;
 BEGIN
   IF auth.role() <> 'service_role' THEN RAISE EXCEPTION 'Privileged operation only'; END IF;
@@ -78,7 +78,7 @@ BEGIN
   VALUES(p_order_id,'pending','cancelled',NULL);
   RETURN true;
 END;
-$;
+$$;
 REVOKE ALL ON FUNCTION public.cancel_provider_pix_payment(text,uuid,numeric) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.cancel_provider_pix_payment(text,uuid,numeric) TO service_role;
 
