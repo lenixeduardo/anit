@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   const response=await fetch('https://'+host+'/api/v2/me/shipment/calculate',{method:'POST',headers:{Authorization:'Bearer '+apiToken,'User-Agent':agent,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({from:{postal_code:origin},to:{postal_code:postalCode},products:payloadProducts,services:'1,2',options:{receipt:false,own_hand:false}}),signal:AbortSignal.timeout(15000)});
   if(!response.ok) return NextResponse.json({error:'Transportadora indisponível. Tente novamente.'},{status:502});
   const options=shippingOptions(await response.json());
-  if(options.length<2) return NextResponse.json({error:'Não há duas modalidades disponíveis para este CEP e estes itens. Confira o CEP ou tente novamente.'},{status:422});
+  if(options.length<1) return NextResponse.json({error:'Não há modalidades disponíveis para este CEP e estes itens. Confira o CEP ou tente novamente.'},{status:422});
   const expiresAt=new Date(Date.now()+15*60*1000).toISOString();
   const rows=options.map(o=>({user_id:user.id,items:normalizeItems(body.items),postal_code:postalCode,service_id:o.serviceId,service_name:o.name,price:o.price,delivery_days:o.days,expires_at:expiresAt,sandbox:process.env.MELHOR_ENVIO_SANDBOX==='true'}));
   const {data:quotes,error:saveError}=await admin.from('shipping_quotes').insert(rows).select('id,service_id');

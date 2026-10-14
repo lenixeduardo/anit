@@ -1,0 +1,34 @@
+name: ANIT quality checks
+on:
+  pull_request:
+    branches: [main, chore/fase-1-fundacao-anit]
+  push:
+    branches: [feat/fase-2-pagamentos, chore/fase-6-qa-release, fix/consolidacao-main-anit]
+permissions:
+  contents: read
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Lint changed payment modules
+        run: npx eslint src/lib/mercadopago-webhook.ts src/app/api/webhooks/mercadopago/route.ts src/app/api/payments/mercadopago/route.ts
+      - name: Payment webhook signature regression
+        run: node scripts/test-mercadopago-signature.cjs
+      - name: SQL payment reconciliation regression
+        run: node scripts/test-payment-reconciliation.cjs
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Check JavaScript syntax
+        run: |
+          node --check public/checkout.js
+          node --check public/pedidos.js
+          node --check public/anit.js
+          node --check scripts/test-pix.cjs
+      - name: Production build
+        run: npm run build
