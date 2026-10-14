@@ -57,7 +57,7 @@
         pay.onclick = async () => {
           pay.disabled = true;
           try {
-            const data = await api('?id=' + encodeURIComponent(order.id) + '&pix=1');
+            const data = paymentProvider === 'mercadopago' ? await (async () => { const result = await fetch('/api/payments/mercadopago?orderId=' + encodeURIComponent(order.id), { headers: { Authorization: 'Bearer ' + session.access_token } }); const payload = await result.json(); if (!result.ok) throw new Error(payload.error || 'Pix indisponível'); return payload; })() : await api('?id=' + encodeURIComponent(order.id) + '&pix=1');
             if (selected !== order.id) return;
             const qr = element('img'); qr.src = data.qr; qr.alt = 'QR Code Pix do pedido';
             const label = element('label', 'Pix Copia e Cola'); const code = element('textarea'); code.readOnly = true; code.value = data.payload; code.rows = 4; label.append(code);
