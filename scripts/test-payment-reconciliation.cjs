@@ -19,7 +19,7 @@ const { PGlite } = require('@electric-sql/pglite');
   const order='30000000-0000-4000-8000-000000000001';
   await db.exec(`INSERT INTO auth.users(id,email) VALUES ('${uid}','buyer@example.invalid');
     INSERT INTO public.products(id,name,price,category,stock) VALUES('${product}','Teste',100,'bong',3);
-    INSERT INTO public.orders(id,user_id,status,total) VALUES('${order}','${uid}','pending',200);
+    INSERT INTO public.orders(id,user_id,status,total,shipping_address) VALUES('${order}','${uid}','pending',200,'{"recipient":"Teste","postal_code":"01001000","street":"Rua Teste","number":"1","neighborhood":"Centro","city":"São Paulo","state":"SP"}'::jsonb);
     INSERT INTO public.order_items(order_id,product_id,quantity,price) VALUES('${order}','${product}',2,100);
     SELECT set_config('test.role','service_role',false);`);
   let result=await db.query('SELECT public.confirm_provider_pix_payment($1,$2,$3) AS ok',['987654321',order,200]);
