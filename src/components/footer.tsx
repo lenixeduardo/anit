@@ -1,3 +1,4 @@
+import Link from "next/link";
 const links = [
   { label: "Brands",   href: "#" },
   { label: "Careers",  href: "#" },
@@ -9,9 +10,9 @@ export function Footer() {
   return (
     <footer className="border-t border-white/[0.06] py-10">
       <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <a href="/" className="text-white font-semibold tracking-[-0.03em]">
+        <Link href="/" className="text-white font-semibold tracking-[-0.03em]">
           tynderella
-        </a>
+        </Link>
 
         <nav aria-label="Footer navigation">
           <ul className="flex flex-wrap justify-center gap-6">
