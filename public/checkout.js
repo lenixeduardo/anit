@@ -63,7 +63,7 @@
       if (response.ok && paymentProvider === 'mercadopago' && Array.isArray(data) && data[0]?.status === 'pending') {
         const paymentResponse = await fetch('/api/payments/mercadopago?orderId='+encodeURIComponent(saved.data.orderId), {headers:{Authorization:'Bearer '+session.access_token}});
         const payment=await paymentResponse.json();
-        if(paymentResponse.ok){ showPayment({...payment,...data[0],orderId:saved.data.orderId});return; }
+        if(paymentResponse.ok){ showPayment({...payment,...data[0],shippingAddress:data[0].shipping_address,orderId:saved.data.orderId});return; }
         if(paymentResponse.status===404){retryExistingOrder=true;} else {throw new Error(payment.error || 'Não foi possível recuperar o pagamento.');}
       }
       if (response.ok && paymentProvider !== 'mercadopago') { showPayment(data); return; }
