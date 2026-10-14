@@ -39,6 +39,19 @@ const { PGlite } = require('@electric-sql/pglite');
   await assert.rejects(db.query('SELECT public.confirm_provider_pix_payment($1,$2,$3)',['987654322',order,200]));
   result=await db.query('SELECT stock FROM public.products WHERE id=$1',[product]);
   assert.equal(result.rows[0].stock,1);
-  console.log('Conciliação SQL: estado pago, reenvio, envio, integridade de estoque e rejeição de duplicação OK.');
+  const cancelled='30000000-0000-4000-8000-000000000002';
+  await db.exec(`INSERT INTO public.orders(id,user_id,status,total,shipping_address)
+    VALUES ('${cancelled}','${uid}','pending',100,
+      '{"recipient":"Teste","postal_code":"01001000","street":"Rua Teste","number":"1","neighborhood":"Centro","city":"São Paulo","state":"SP"}'::jsonb);
+    INSERT INTO public.order_items(order_id,product_id,quantity,price)
+    VALUES ('${cancelled}','${product}',1,100);`);
+  result=await db.query('SELECT public.cancel_provider_pix_payment($1,$2,$3) AS ok',['88888888',cancelled,100]);
+  assert.equal(result.rows[0].ok,true);
+  result=await db.query('SELECT public.cancel_provider_pix_payment($1,$2,$3) AS ok',['88888888',cancelled,100]);
+  assert.equal(result.rows[0].ok,true);
+  await assert.rejects(db.query('SELECT public.confirm_provider_pix_payment($1,$2,$3)',['88888888',cancelled,100]));
+  result=await db.query('SELECT stock FROM public.products WHERE id=$1',[product]);
+  assert.equal(result.rows[0].stock,1);
+  console.log('Conciliação SQL: confirmação e cancelamento idempotentes, estoque íntegro e conflitos rejeitados.');
  } finally { await db.close(); }
 })().catch(e=>{console.error(e);process.exitCode=1;});
