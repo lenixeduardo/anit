@@ -13,10 +13,13 @@
 - [x] Corrigir versão de dependência Supabase incompatível; regenerar lockfile.
 - [ ] Corrigir falhas de ESLint, especialmente tipagens novas e problemas legados que bloqueiam a CI.
 - [ ] Aprovar TypeScript e build de produção.
-- [ ] Implementar expiração de cobrança e pedido, cancelamento seguro e política de reembolso.
-- [ ] Cobrir idempotência, falhas de rede, eventos fora de ordem e pagamentos concorrentes com testes automatizados.
+- [x] Tratar cancelamento/rejeição de cobrança confirmado pelo provedor com idempotência e sem baixar estoque.
+- [ ] Automatizar expiração e cancelamento iniciado pelo cliente; implementar reembolsos, estornos e tratamento pós-pagamento.
+- [x] Incluir regressão em banco isolado para confirmação/cancelamento idempotentes, estoque e conflitos; incluir teste HMAC e expiração da assinatura.
+- [ ] Testar concorrência real, falhas de rede e outros eventos fora de ordem com gateway homologado.
 - [ ] Validar SQL de conciliação em PostgreSQL de homologação; não executar sem auditoria do ambiente.
-- [ ] Revisar fluxo do CPF e de pagamento nas telas de pedidos.
+- [x] Corrigir recuperação do PIX dinâmico e endereço do pedido; impedir confirmação/cancelamento manual sem conciliação.
+- [ ] Homologar UX do CPF e estados finais de pagamento em navegador real.
 - [ ] Resolver eventuais divergências entre PR #1, #2 e #3 antes dos merges.
 - [ ] Configurar credenciais Mercado Pago, autorização do estabelecimento, webhook e testar transação real controlada. **Dependência externa adiada a pedido.**
 
