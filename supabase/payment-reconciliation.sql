@@ -32,10 +32,10 @@ BEGIN
   SELECT * INTO payment FROM public.payment_transactions
   WHERE provider='mercadopago' AND provider_payment_id=p_provider_payment_id AND order_id=p_order_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Conflicting payment'; END IF;
-  IF NOT FOUND OR ord.total <> p_amount OR payment.amount <> p_amount THEN
+  IF ord.total <> p_amount OR payment.amount <> p_amount THEN
     RAISE EXCEPTION 'Payment amount mismatch';
   END IF;
-  IF payment.status='paid' AND ord.status='paid' THEN RETURN true; END IF;
+  IF payment.status='paid' AND ord.status IN ('paid','shipped','delivered') THEN RETURN true; END IF;
   IF payment.status <> 'pending' OR ord.status <> 'pending' THEN RAISE EXCEPTION 'Invalid payment transition'; END IF;
   IF NOT EXISTS (SELECT 1 FROM public.order_items WHERE order_id=p_order_id) THEN RAISE EXCEPTION 'Order without items'; END IF;
   FOR item IN SELECT product_id, sum(quantity)::integer AS quantity
