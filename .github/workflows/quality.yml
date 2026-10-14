@@ -18,6 +18,8 @@ jobs:
       - run: npm ci
       - name: Lint changed payment modules
         run: npx eslint src/lib/mercadopago-webhook.ts src/app/api/webhooks/mercadopago/route.ts src/app/api/payments/mercadopago/route.ts
+      - name: Payment webhook signature regression
+        run: node scripts/test-mercadopago-signature.cjs
       - name: Typecheck
         run: npx tsc --noEmit
       - name: Check JavaScript syntax
