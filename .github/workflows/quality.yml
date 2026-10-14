@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main, chore/fase-1-fundacao-anit]
   push:
-    branches: [feat/fase-2-pagamentos, chore/fase-6-qa-release]
+    branches: [feat/fase-2-pagamentos, chore/fase-6-qa-release, fix/consolidacao-main-anit]
 permissions:
   contents: read
 jobs:
@@ -18,7 +18,6 @@ jobs:
       - run: npm ci
       - name: Lint changed payment modules
         run: npx eslint src/lib/mercadopago-webhook.ts src/app/api/webhooks/mercadopago/route.ts src/app/api/payments/mercadopago/route.ts
-        continue-on-error: true
       - name: Typecheck
         run: npx tsc --noEmit
       - name: Check JavaScript syntax
