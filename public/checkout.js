@@ -96,7 +96,7 @@
           const data = await response.json();
           if (!response.ok) throw new Error(data.error || 'Não foi possível calcular o frete.');
           if (window.anitShippingAddress !== address) throw new Error('Endereço alterado. Salve e calcule o frete novamente.');
-          if (!Array.isArray(data.options) || data.options.length < 2 || data.sandbox) throw new Error('Frete ainda indisponível para finalizar esta compra.');
+          if (!Array.isArray(data.options) || data.options.length < 1 || data.sandbox) throw new Error('Frete ainda indisponível para finalizar esta compra.');
           shippingExpires = Date.parse(data.expiresAt);
           if (!Number.isFinite(shippingExpires) || shippingExpires <= Date.now()) throw new Error('Cotação expirada. Calcule novamente.');
           for (const option of data.options) {
