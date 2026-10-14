@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main, chore/fase-1-fundacao-anit]
   push:
-    branches: [feat/fase-2-pagamentos]
+    branches: [feat/fase-2-pagamentos, chore/fase-6-qa-release]
 permissions:
   contents: read
 jobs:
@@ -21,5 +21,11 @@ jobs:
         continue-on-error: true
       - name: Typecheck
         run: npx tsc --noEmit
+      - name: Check JavaScript syntax
+        run: |
+          node --check public/checkout.js
+          node --check public/pedidos.js
+          node --check public/anit.js
+          node --check scripts/test-pix.cjs
       - name: Production build
         run: npm run build

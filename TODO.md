@@ -37,6 +37,13 @@
 - [ ] Fase 4: validar RLS, testar CRUD e adaptar confirmação de pagamento na tela administrativa.
 - [x] Fase 5: página inicial de FAQ criada.
 - [ ] Fase 5: e-mails transacionais, políticas definitivas e canal de atendimento.
-- [ ] Fase 6: QA ponta a ponta, revisão mobile, publicação e monitoramento.
+- [x] Fase 6: preparar CI de validação de TypeScript, build e sintaxe das páginas JS.
+- [ ] Fase 6: eliminar erros de TypeScript, lint e build detectados pela CI.
+- [ ] Fase 6: executar testes E2E portáveis (script PIX atual depende de caminho absoluto do Playwright no Windows).
+- [ ] Fase 6: validar responsividade 320/390/768/1440, imagens e acessibilidade em navegador real.
+- [ ] Fase 6: auditar integração de pagamentos, estoque, frete, e-mails e políticas antes de ativar produção.
+- [ ] Fase 6: checar dependências das PRs #1–#4, promover merges sequenciais e resolver conflitos.
+- [ ] Fase 6: executar migrações seguras em homologação e testar dados reais autorizados.
+- [ ] Fase 6: publicar somente após critérios de aprovação e configurar monitoramento/alertas.
 
 **Observação:** itens implementados em branch não são funcionalidades validadas em produção. PRs ainda precisam de revisão e integração.
