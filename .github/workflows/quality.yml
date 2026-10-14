@@ -32,3 +32,20 @@ jobs:
           node --check scripts/test-pix.cjs
       - name: Production build
         run: npm run build
+      - name: Install Playwright for browser QA
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install --with-deps chromium
+      - name: Start application for browser smoke
+        run: |
+          (npm run start > /tmp/anit-next.log 2>&1 &)
+          for i in $(seq 1 40); do curl -sf http://127.0.0.1:3000/store.html >/dev/null && break; sleep 2; done
+          curl -f http://127.0.0.1:3000/store.html >/dev/null
+      - name: End-to-end Chromium smoke
+        run: node scripts/test-playwright-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: anit-browser-screenshots
+          path: test-results/anit
+          if-no-files-found: ignore
