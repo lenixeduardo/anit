@@ -20,6 +20,8 @@ jobs:
         run: npx eslint src/lib/mercadopago-webhook.ts src/app/api/webhooks/mercadopago/route.ts src/app/api/payments/mercadopago/route.ts
       - name: Payment webhook signature regression
         run: node scripts/test-mercadopago-signature.cjs
+      - name: SQL payment reconciliation regression
+        run: node scripts/test-payment-reconciliation.cjs
       - name: Typecheck
         run: npx tsc --noEmit
       - name: Check JavaScript syntax
