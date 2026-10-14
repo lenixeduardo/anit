@@ -7,6 +7,7 @@ export async function GET() {
   return NextResponse.json({
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-    shippingEnabled
+    shippingEnabled,
+    paymentProvider: process.env.PAYMENT_PROVIDER === 'mercadopago' ? 'mercadopago' : 'legacy'
   });
 }

@@ -3,9 +3,9 @@
   const $ = id => document.getElementById(id);
   const money = n => Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const message = text => { $('message').textContent = text; };
-  let busy = false, session, shippingEnabled = false, selectedShipping = null, shippingExpires = 0, subtotal = 0, discount = 0;
+  let busy = false, session, paymentProvider = 'legacy', shippingEnabled = false, selectedShipping = null, shippingExpires = 0, subtotal = 0, discount = 0;
   function hasAddress() { return session && window.anitValidShippingAddress?.(window.anitShippingAddress); }
-  function canGenerate() { return hasAddress() && (!shippingEnabled || (selectedShipping && shippingExpires > Date.now())); }
+  function canGenerate() { return (paymentProvider !== 'mercadopago' || /^\d{11}$/.test(($('payer-cpf')?.value || '').replace(/\D/g,''))) && hasAddress() && (!shippingEnabled || (selectedShipping && shippingExpires > Date.now())); }
   function estimate() {
     const shipping = shippingEnabled ? selectedShipping?.price : subtotal >= 200 ? 0 : 18.90;
     $('estimate').textContent = shipping === undefined ? 'Subtotal com desconto: ' + money(subtotal - discount) + ' · Selecione o frete.' : 'Total estimado: ' + money(subtotal - discount + shipping);
@@ -45,16 +45,27 @@
     client.auth.onAuthStateChange((event, current) => { session = current; refreshButton(); if (!current) location.href = 'login.html?next=/checkout.html'; });
     const configResponse = await fetch('/api/config', { cache: 'no-store' });
     if (!configResponse.ok) throw new Error('Não foi possível carregar o checkout. Recarregue a página.');
-    shippingEnabled = (await configResponse.json()).shippingEnabled === true;
+    const checkoutConfig = await configResponse.json();
+    shippingEnabled = checkoutConfig.shippingEnabled === true;
+    paymentProvider = checkoutConfig.paymentProvider || 'legacy';
+    $('payer-info').hidden = paymentProvider !== 'mercadopago';
+    $('payer-cpf').addEventListener('input', refreshButton);
+    $('payment-advice').textContent = paymentProvider === 'mercadopago' ? 'A confirmação será feita automaticamente após processamento pelo provedor. Consulte Meus pedidos.' : 'O pedido aguarda confirmação manual pela loja.';
     $('shipping-fieldset').hidden = !shippingEnabled;
     // User identity and version prevent old or other-account caches from being reused.
-    const fingerprint = JSON.stringify({ version: 2, userId: session.user.id, shippingEnabled, cart, coupon: sessionStorage.getItem('anit-checkout-coupon') || '' });
+    const fingerprint = JSON.stringify({ version: 3, paymentProvider, userId: session.user.id, shippingEnabled, cart, coupon: sessionStorage.getItem('anit-checkout-coupon') || '' });
     const saved = JSON.parse(sessionStorage.getItem('anit-pix-order') || 'null');
     if (saved?.fingerprint === fingerprint && saved.data?.orderId) {
-      const response = await fetch('/api/orders?id=' + encodeURIComponent(saved.data.orderId) + '&pix=1', { headers: { Authorization: 'Bearer ' + session.access_token } });
+      const response = await fetch('/api/orders?id=' + encodeURIComponent(saved.data.orderId) + (paymentProvider === 'mercadopago' ? '' : '&pix=1'), { headers: { Authorization: 'Bearer ' + session.access_token } });
       const data = await response.json();
-      if (response.ok) { showPayment(data); return; }
-      if (![404, 409, 422].includes(response.status)) throw new Error(data.error || 'Não foi possível recuperar seu pedido. Tente novamente.');
+      if (response.ok && paymentProvider === 'mercadopago' && Array.isArray(data) && data[0]?.status === 'paid') { location.href='pedidos.html'; return; }
+      if (response.ok && paymentProvider === 'mercadopago' && Array.isArray(data) && data[0]?.status === 'pending') {
+        const paymentResponse = await fetch('/api/payments/mercadopago?orderId='+encodeURIComponent(saved.data.orderId), {headers:{Authorization:'Bearer '+session.access_token}});
+        const payment=await paymentResponse.json();
+        if(paymentResponse.ok){ showPayment({...payment,...data[0],orderId:saved.data.orderId});return; }
+      }
+      if (response.ok && paymentProvider !== 'mercadopago') { showPayment(data); return; }
+      if (![200,404, 409, 422].includes(response.status)) throw new Error(data.error || 'Não foi possível recuperar seu pedido. Tente novamente.');
       sessionStorage.removeItem('anit-pix-order'); sessionStorage.removeItem('anit-pix-attempt');
     }
     const response = await fetch('/api/products');
@@ -118,6 +129,15 @@
         if (!response.ok || !data.success) {
           if (data.code === 'ADDRESS_REQUIRED') window.anitShippingAddress = null;
           throw new Error(data.error || 'Não foi possível gerar o Pix.');
+        }
+        if (paymentProvider === 'mercadopago') {
+          const cpf = $('payer-cpf').value.replace(/\D/g,'');
+          sessionStorage.setItem('anit-pix-order', JSON.stringify({ fingerprint, data: { orderId: data.orderId } }));
+          const payResponse = await fetch('/api/payments/mercadopago',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({orderId:data.orderId,cpf})});
+          const payData = await payResponse.json();
+          if (!payResponse.ok) throw new Error(payData.error || 'Falha ao gerar cobrança. O pedido foi preservado.');
+          
+          data.payload=payData.payload;data.qr=payData.qr;
         }
         showPayment(data);
         // Personal address/payment details are retrieved from the server on recovery.

@@ -19,6 +19,7 @@ export async function POST(request: Request) {
  const {data,error}=await client.rpc('create_pix_order',{p_id:body.orderId,p_items:body.items.map((i:{id:string;qty:number})=>({id:i.id,qty:i.qty})),p_coupon:body.coupon||'',...(shippingEnabled ? {p_shipping_quote:body.shippingQuoteId} : {})});
  if(error?.message === 'ADDRESS_REQUIRED') return NextResponse.json({error:'Cadastre e salve um endereço completo antes de gerar o Pix. Pedidos antigos sem endereço devem ser refeitos pelo carrinho.',code:'ADDRESS_REQUIRED'},{status:422});
  if(error) return NextResponse.json({error:error.code==='PGRST202'?'Checkout Pix ainda não habilitado no banco da loja.':'Não foi possível criar o pedido. Confira estoque, cupom e sua conta.',code:error.code==='PGRST202'?'PIX_SETUP_REQUIRED':'ORDER_FAILED'},{status:error.code==='PGRST202'?503:400});
+ if(process.env.PAYMENT_PROVIDER === 'mercadopago') return NextResponse.json({success:true,...data,paymentProvider:'mercadopago'});
  const payload=createPixPayload(Math.round(Number(data.total)*100),data.orderId.replace(/-/g,'').slice(0,25));
  const qr=await QRCode.toDataURL(payload,{width:512,margin:4,errorCorrectionLevel:'M'});
  return NextResponse.json({success:true,...data,payload,qr,key:PIX_KEY,receiver:'ANIT HEADSHOP',city:'SAO PAULO'});
@@ -50,6 +51,7 @@ export async function GET(request: Request) {
  const {data,error}=await query;
  if(error) return NextResponse.json({error:'Não foi possível consultar pedidos. Verifique a configuração do banco.'},{status:503});
  if(params.get('id')&&!data?.length) return NextResponse.json({error:'Pedido não encontrado'},{status:404});
+ if(params.get('pix')==='1'&&process.env.PAYMENT_PROVIDER === 'mercadopago') return NextResponse.json({error:'Use a cobrança do provedor de pagamento.'},{status:409});
  if(params.get('pix')==='1'&&data?.length===1){
  const order=data[0];
  if(order.status!=='pending') return NextResponse.json({error:'Este pedido não está aguardando Pix'},{status:409});
@@ -67,6 +69,7 @@ export async function PATCH(request: Request) {
  if(!auth.admin) return NextResponse.json({error:'Acesso restrito ao administrador'},{status:403});
  const body=await request.json();
  if(!/^[0-9a-f-]{36}$/i.test(body.id||'')||!['paid','shipped','delivered','cancelled'].includes(body.status)||typeof (body.tracking||'')!=='string'||(body.tracking||'').length>100) return NextResponse.json({error:'Dados inválidos'},{status:400});
+ if(body.status==='paid' && process.env.PAYMENT_PROVIDER === 'mercadopago') return NextResponse.json({error:'A confirmação de pagamento deve ser realizada pelo provedor.'},{status:403});
  if(body.status==='paid'&&body.paymentVerified!==true) return NextResponse.json({error:'Confirme o recebimento do Pix no banco'},{status:400});
  const {data,error}=await auth.client.rpc('update_order_status',{p_id:body.id,p_status:body.status,p_tracking:body.tracking||''});
  if(error) return NextResponse.json({error:'Não foi possível atualizar. Verifique o status atual, o estoque e o rastreio.'},{status:409});
