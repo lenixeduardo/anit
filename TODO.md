@@ -33,8 +33,10 @@
 - [ ] Executar testes isolados e homologação sem modificar pedidos reais.
 
 ## Fases 4–6
-- [ ] Fase 4: gestão administrativa completa.
-- [ ] Fase 5: notificações, FAQ, políticas e atendimento.
+- [x] Fase 4: estrutura existente de CRUD e gestão de pedidos revisada em código.
+- [ ] Fase 4: validar RLS, testar CRUD e adaptar confirmação de pagamento na tela administrativa.
+- [x] Fase 5: página inicial de FAQ criada.
+- [ ] Fase 5: e-mails transacionais, políticas definitivas e canal de atendimento.
 - [ ] Fase 6: QA ponta a ponta, revisão mobile, publicação e monitoramento.
 
 **Observação:** itens implementados em branch não são funcionalidades validadas em produção. PRs ainda precisam de revisão e integração.
