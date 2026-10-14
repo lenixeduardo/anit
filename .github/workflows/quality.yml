@@ -43,6 +43,10 @@ jobs:
           curl -f http://127.0.0.1:3000/store.html >/dev/null
       - name: End-to-end Chromium smoke
         run: node scripts/test-playwright-smoke.cjs
+      - name: Checkout Pix browser scenarios
+        run: node scripts/test-pix.cjs
+      - name: Shipping browser scenarios
+        run: node scripts/test-shipping-ui.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
