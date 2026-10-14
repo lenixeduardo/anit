@@ -69,6 +69,7 @@ export async function PATCH(request: Request) {
  if(!auth.admin) return NextResponse.json({error:'Acesso restrito ao administrador'},{status:403});
  const body=await request.json();
  if(!/^[0-9a-f-]{36}$/i.test(body.id||'')||!['paid','shipped','delivered','cancelled'].includes(body.status)||typeof (body.tracking||'')!=='string'||(body.tracking||'').length>100) return NextResponse.json({error:'Dados inválidos'},{status:400});
+ if(body.status==='cancelled' && process.env.PAYMENT_PROVIDER === 'mercadopago') return NextResponse.json({error:'Cancelamento de PIX exige conciliação com o provedor.'},{status:409});
  if(body.status==='paid' && process.env.PAYMENT_PROVIDER === 'mercadopago') return NextResponse.json({error:'A confirmação de pagamento deve ser realizada pelo provedor.'},{status:403});
  if(body.status==='paid'&&body.paymentVerified!==true) return NextResponse.json({error:'Confirme o recebimento do Pix no banco'},{status:400});
  const {data,error}=await auth.client.rpc('update_order_status',{p_id:body.id,p_status:body.status,p_tracking:body.tracking||''});
