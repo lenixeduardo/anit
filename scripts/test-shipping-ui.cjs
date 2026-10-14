@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const {chromium} = require('C:/Users/lenovo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium} = require('playwright');
 (async () => {
  const {createPixPayload,crc16} = await import('../src/lib/pix.ts');
  assert.equal(crc16('123456789'),'29B1');
@@ -13,7 +13,7 @@ const {chromium} = require('C:/Users/lenovo/.cache/codex-runtimes/codex-primary-
  const http=require('node:http'),path=require('node:path');const root=path.resolve('public');
  const server=http.createServer((req,res)=>{const f=path.resolve(root,'.'+req.url.split('?')[0]);if(!f.startsWith(root+path.sep)||!fs.existsSync(f)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[path.extname(f)]||'application/octet-stream');res.end(fs.readFileSync(f));});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const uiBase='http://127.0.0.1:'+server.address().port;
- const browser=await chromium.launch({headless:true,channel:'msedge'});
+ const browser=await chromium.launch({headless:true});
  try {
  const context=await browser.newContext(); let fail=false, calls=0, sent;
  await context.route(/(cdn\.jsdelivr\.net|auth-client\.js)/,r=>r.fulfill({contentType:'text/javascript',body:"let fixtureAddress={\"recipient\":\"Cliente Teste\",\"postal_code\":\"01001000\",\"street\":\"Rua Teste\",\"number\":\"10\",\"complement\":\"\",\"neighborhood\":\"Centro\",\"city\":\"São Paulo\",\"state\":\"SP\"};window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'fixture-user'},access_token:'fixture-token'}}}),onAuthStateChange:()=>{}},from:()=>({select:()=>({eq:()=>({single:async()=>({data:{shipping_address:fixtureAddress},error:null})})}),update:data=>({eq:()=>({select:()=>({single:async()=>{fixtureAddress=data.shipping_address;return {data,error:null};}})})})})})};"}));
