@@ -95,7 +95,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Resposta inválida do gateway" }, { status: 502 });
     const { error: storeError } = await admin.from("payment_transactions")
       .insert({ order_id: orderId, provider: "mercadopago", provider_payment_id: paymentId, amount, status: "pending" });
-    if (storeError) return NextResponse.json({ error: "Cobrança criada; conciliação pendente. Não gere outro pedido." }, { status: 503 });
+    if (storeError) {
+      const { data: recorded } = await admin.from("payment_transactions")
+        .select("provider_payment_id").eq("order_id", orderId)
+        .eq("provider", "mercadopago").maybeSingle();
+      if (recorded?.provider_payment_id !== paymentId) {
+        return NextResponse.json({ error: "Conciliação pendente. Não gere outro pedido." }, { status: 503 });
+      }
+    }
     return NextResponse.json(paymentDisplay(payment,orderId), { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "Não foi possível processar a cobrança" }, { status: 503 });
