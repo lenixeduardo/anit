@@ -32,11 +32,15 @@ export async function POST(request: Request) {
     if (!paymentResponse.ok) return NextResponse.json({ error: "Provider unavailable" }, { status: 502 });
     const payment = await paymentResponse.json();
     if (String(payment.id) !== id) return NextResponse.json({ error: "Payment mismatch" }, { status: 409 });
-    if (payment.status !== "approved" || payment.currency_id !== "BRL" || payment.payment_method_id !== "pix") {
+    if (payment.currency_id !== "BRL" || payment.payment_method_id !== "pix") {
+      return NextResponse.json({ error: "Payment method mismatch" }, { status: 409 });
+    }
+    if (!["approved", "cancelled", "rejected"].includes(payment.status)) {
       return NextResponse.json({ received: true });
     }
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { error } = await admin.rpc("confirm_provider_pix_payment", {
+    const { error } = await admin.rpc(payment.status === "approved"
+      ? "confirm_provider_pix_payment" : "cancel_provider_pix_payment", {
       p_provider_payment_id: id,
       p_order_id: payment.external_reference,
       p_amount: payment.transaction_amount
