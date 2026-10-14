@@ -5,6 +5,7 @@
   const labels = { pending: 'Aguardando Pix', paid: 'Pagamento confirmado', shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado' };
   const money = n => Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const date = d => new Date(d).toLocaleString('pt-BR');
+  let paymentProvider = 'legacy';
   let orders = [], selected = new URLSearchParams(location.search).get('id'), session, loading = false, offset = 0;
   function element(tag, text, className) {
     const el = document.createElement(tag); if (text !== undefined) el.textContent = text;
@@ -50,7 +51,7 @@
     for (const event of [...(order.order_status_history || [])].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))) history.append(element('p', date(event.created_at) + ' · ' + (labels[event.status] || event.status)));
     root.append(element('h3', 'Histórico'), history);
     if (order.status === 'pending') {
-      root.append(element('p', 'O pagamento será confirmado pela loja após conferir o recebimento no banco.'));
+      root.append(element('p', paymentProvider === 'mercadopago' ? 'A confirmação é automática após validação do provedor.' : 'O pagamento será confirmado pela loja após conferir o recebimento no banco.'));
       if (!admin) {
         const pay = element('button', 'Ver Pix do pedido');
         pay.onclick = async () => {
@@ -71,7 +72,7 @@
       const transitions = { pending: [['paid', 'Confirmar recebimento do Pix'], ['cancelled', 'Cancelar pedido']], paid: [['shipped', 'Registrar envio']], shipped: [['delivered', 'Marcar como entregue']] };
       let tracking;
       if (order.status === 'paid') { const label = element('label', 'Código de rastreio'); tracking = element('input'); tracking.maxLength = 100; label.append(tracking); root.append(label); }
-      for (const [status, text] of transitions[order.status] || []) {
+      for (const [status, text] of (transitions[order.status] || []).filter(([next]) => !(next === 'paid' && paymentProvider === 'mercadopago'))) {
         const button = element('button', text, status === 'cancelled' ? 'danger' : '');
         button.onclick = async () => {
           if (status === 'shipped' && tracking.value.trim().length < 3) { $('message').textContent = 'Informe o código de rastreio.'; tracking.focus(); return; }
@@ -96,6 +97,8 @@
     if (!session) { location.href = 'login.html'; return; }
     client.auth.onAuthStateChange((event, current) => { session = current; if (!current) location.href = 'login.html'; });
     $('search').oninput = renderList; $('filter').onchange = renderList; $('refresh').onclick = () => load(); $('more').onclick = () => load(true);
+    const paymentConfig = await fetch('/api/config', {cache:'no-store'});
+    if (paymentConfig.ok) paymentProvider = (await paymentConfig.json()).paymentProvider || 'legacy';
     await load(); setInterval(() => { if (document.visibilityState === 'visible' && !document.activeElement?.closest('#detail')) load(); }, 30000);
   } catch (error) { $('message').textContent = error.message; }
 })();
