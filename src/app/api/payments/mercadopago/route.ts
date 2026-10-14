@@ -13,7 +13,7 @@ async function fetchProviderPayment(id: string, token: string) {
   if (!response.ok) throw new Error("Payment provider unavailable");
   return response.json();
 }
-function paymentDisplay(payment: any, orderId: string) {
+function paymentDisplay(payment: { external_reference?: string; payment_method_id?: string; status?: string; date_of_expiration?: string; point_of_interaction?: { transaction_data?: { qr_code?: string; qr_code_base64?: string } } }, orderId: string) {
   if (String(payment.external_reference) !== orderId || payment.payment_method_id !== "pix") throw new Error("Provider payment mismatch");
   const details = payment.point_of_interaction?.transaction_data;
   if (!details?.qr_code) throw new Error("Provider QR code unavailable");
@@ -90,7 +90,6 @@ export async function POST(request: Request) {
     const payment = await response.json();
     const paymentId = String(payment.id || "");
     const qrCode = payment.point_of_interaction?.transaction_data?.qr_code;
-    const qrBase64 = payment.point_of_interaction?.transaction_data?.qr_code_base64;
     if (!/^\d+$/.test(paymentId) || payment.external_reference !== orderId ||
         Number(payment.transaction_amount) !== amount || !qrCode)
       return NextResponse.json({ error: "Resposta inválida do gateway" }, { status: 502 });
