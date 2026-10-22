@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 export async function ensureOrderSchema() {
   const db = turso();
   const statements = [
-    `CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT NOT NULL, price_cents INTEGER NOT NULL CHECK(price_cents >= 0), stock INTEGER NOT NULL DEFAULT 0 CHECK(stock >= 0))`,
+    `CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT, category TEXT, image_url TEXT, price_cents INTEGER NOT NULL CHECK(price_cents >= 0), stock INTEGER NOT NULL DEFAULT 0 CHECK(stock >= 0))`,
     `CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES auth_users(id), total_cents INTEGER NOT NULL CHECK(total_cents > 0), status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','paid','shipped','delivered','cancelled')), shipping_address TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, paid_at TEXT)`,
     `CREATE TABLE IF NOT EXISTS order_items (id TEXT PRIMARY KEY, order_id TEXT NOT NULL REFERENCES orders(id), product_id TEXT NOT NULL REFERENCES products(id), quantity INTEGER NOT NULL CHECK(quantity > 0), price_cents INTEGER NOT NULL CHECK(price_cents >= 0))`,
     `CREATE TABLE IF NOT EXISTS payment_transactions (id TEXT PRIMARY KEY, order_id TEXT NOT NULL REFERENCES orders(id), provider TEXT NOT NULL, provider_payment_id TEXT NOT NULL UNIQUE, amount_cents INTEGER NOT NULL CHECK(amount_cents > 0), status TEXT NOT NULL, UNIQUE(order_id, provider))`,
@@ -13,6 +13,11 @@ export async function ensureOrderSchema() {
     `CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id,created_at)`
   ];
   for (const sql of statements) await db.execute(sql);
+  const columns = await db.execute("PRAGMA table_info(products)");
+  const existing = new Set(columns.rows.map(row => String(row.name)));
+  for (const column of ["description", "category", "image_url"]) {
+    if (!existing.has(column)) await db.execute(`ALTER TABLE products ADD COLUMN ${column} TEXT`);
+  }
 }
 
 export async function findUserOrder(userId: string, orderId: string) {
