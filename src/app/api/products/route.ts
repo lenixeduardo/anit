@@ -3,10 +3,17 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { sqlite, sqliteEnabled, publicProduct } from "@/lib/sqlite";
+import { turso } from "@/lib/turso";
+import { ensureOrderSchema } from "@/lib/turso-orders";
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
+    if (process.env.DATABASE_PROVIDER === "turso") {
+      await ensureOrderSchema();
+      const rows = await turso().execute("SELECT * FROM products ORDER BY name ASC");
+      return NextResponse.json(rows.rows.map(row => publicProduct(row as Record<string, unknown>)), {headers: {"Cache-Control":"no-store"}});
+    }
     if (sqliteEnabled) {
       const rows = sqlite().prepare("SELECT * FROM products ORDER BY name ASC").all() as Record<string, unknown>[];
       return NextResponse.json(rows.map(publicProduct));
