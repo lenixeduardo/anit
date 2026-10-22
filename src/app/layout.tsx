@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ANIT Headshop — Vidro, cultura e estilo",
+  title: "Seven Headshop — Vidro, cultura e estilo",
   description:
-    "Explore as coleções ANIT de bongs, maçaricos e acessórios.",
+    "Explore as coleções Seven de bongs, maçaricos e acessórios.",
 };
 
 export default function RootLayout({
