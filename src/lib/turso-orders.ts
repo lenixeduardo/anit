@@ -54,6 +54,11 @@ export async function reconcilePayment(paymentId:string, orderId:string, amountC
       await tx.execute({sql:"UPDATE orders SET status='cancelled' WHERE id=? AND status='pending'",args:[orderId]});
       await tx.execute({sql:"INSERT INTO order_status_history(id,order_id,previous_status,status) VALUES (?,?,'pending','cancelled')",args:[randomUUID(),orderId]});
     } else if (status==="approved" && current!=="paid" && current!=="shipped" && current!=="delivered") throw new Error("Unexpected order state");
+    // A delayed rejection must never overwrite an already confirmed payment.
+    if ((current==="paid"||current==="shipped"||current==="delivered") && status!=="approved") {
+      await tx.commit();
+      return;
+    }
     await tx.execute({sql:"UPDATE payment_transactions SET status=? WHERE provider_payment_id=?",args:[status,paymentId]});
     await tx.commit();
   } catch (error) {await tx.rollback();throw error;}
