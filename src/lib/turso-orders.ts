@@ -26,7 +26,7 @@ export async function findPayment(orderId: string) {
 }
 
 export async function recordPayment(orderId: string, providerPaymentId: string, amountCents: number) {
-  if (!/^\\d{1,32}$/.test(providerPaymentId) || !Number.isSafeInteger(amountCents) || amountCents <= 0) throw new Error("Invalid payment");
+  if (!/^\d{1,32}$/.test(providerPaymentId) || !Number.isSafeInteger(amountCents) || amountCents <= 0) throw new Error("Invalid payment");
   await turso().execute({sql:"INSERT INTO payment_transactions(id,order_id,provider,provider_payment_id,amount_cents,status) VALUES (?,?, 'mercadopago',?,?,'pending') ON CONFLICT(order_id,provider) DO NOTHING",args:[randomUUID(),orderId,providerPaymentId,amountCents]});
   const current=await findPayment(orderId);
   if (String(current?.provider_payment_id)!==providerPaymentId || Number(current?.amount_cents)!==amountCents) throw new Error("Payment reconciliation conflict");
