@@ -5,8 +5,15 @@ import { supabase, createAuthenticatedClient } from "@/lib/supabase";
 import QRCode from "qrcode";
 import { createPixPayload, PIX_KEY } from "@/lib/pix";
 import { shippingEnabled } from "@/lib/shipping-config";
+import { sqliteEnabled } from "@/lib/sqlite";
+import { sqlitePostOrder, sqliteGetOrders, sqlitePatchOrder } from "@/lib/sqlite-orders";
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+ if (sqliteEnabled) {
+   if (shippingEnabled) return NextResponse.json({error:"Checkout SQLite com frete externo ainda não habilitado"},{status:503});
+   return sqlitePostOrder(request);
+ }
  try {
  const token = request.headers.get('Authorization')?.replace(/^Bearer /, '');
  if (!token) return NextResponse.json({error:'Faça login para finalizar'}, {status:401});
@@ -37,6 +44,7 @@ async function authenticated(request: Request) {
  return {client,user,admin:profile?.role==='admin'};
 }
 export async function GET(request: Request) {
+ if (sqliteEnabled) return sqliteGetOrders(request);
  try {
  const auth=await authenticated(request);
  if(!auth) return NextResponse.json({error:'Faça login para consultar pedidos'},{status:401});
@@ -63,6 +71,7 @@ export async function GET(request: Request) {
  } catch {return NextResponse.json({error:'Falha ao consultar pedidos'},{status:500});}
 }
 export async function PATCH(request: Request) {
+ if (sqliteEnabled) return sqlitePatchOrder(request);
  try {
  const auth=await authenticated(request);
  if(!auth) return NextResponse.json({error:'Faça login'},{status:401});
