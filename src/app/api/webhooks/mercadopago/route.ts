@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyMercadoPagoSignature } from "@/lib/mercadopago-webhook";
+import { ensureOrderSchema, reconcilePayment } from "@/lib/turso-orders";
+import { authSchema } from "@/lib/turso";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +13,7 @@ export async function POST(request: Request) {
     const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (!token || !secret || !serviceKey || !url) {
+    if (!token || !secret || (process.env.DATABASE_PROVIDER !== "turso" && (!serviceKey || !url))) {
       return NextResponse.json({ error: "Payment provider not configured" }, { status: 503 });
     }
     const webhook = await request.json();
@@ -38,7 +40,15 @@ export async function POST(request: Request) {
     if (!["approved", "cancelled", "rejected"].includes(payment.status)) {
       return NextResponse.json({ received: true });
     }
-    const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    if (process.env.DATABASE_PROVIDER === "turso") {
+      await authSchema();
+      await ensureOrderSchema();
+      const amountCents = Math.round(Number(payment.transaction_amount) * 100);
+      if (!Number.isSafeInteger(amountCents) || amountCents <= 0 || !/^[0-9a-f-]{36}$/i.test(String(payment.external_reference || ""))) return NextResponse.json({error:"Invalid payment data"},{status:409});
+      await reconcilePayment(id, String(payment.external_reference), amountCents, payment.status);
+      return NextResponse.json({received:true});
+    }
+    const admin = createClient(url!, serviceKey!, { auth: { persistSession: false, autoRefreshToken: false } });
     const { error } = await admin.rpc(payment.status === "approved"
       ? "confirm_provider_pix_payment" : "cancel_provider_pix_payment", {
       p_provider_payment_id: id,
