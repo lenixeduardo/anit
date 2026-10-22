@@ -20,7 +20,7 @@ export async function postTursoOrder(request:Request) {
  if(!user) return fail("Faça login para finalizar",401);
  const body=await request.json();
  if(!uuid.test(body?.orderId||"")||!Array.isArray(body.items)||!body.items.length||body.items.length>100||
- body.items.some((i:{id?:string;qty?:number})=>!uuid.test(i.id||"")||!Number.isInteger(i.qty)||i.qty!<1||i.qty!>99)) return fail("Carrinho inválido",400);
+ body.items.some((i:{id?:string;qty?:number})=>!uuid.test(i.id||"")||!Number.isInteger(i.qty)||Number(i.qty)<1||Number(i.qty)>99)) return fail("Carrinho inválido",400);
  if(body.coupon) return fail("Cupons ainda não habilitados no checkout Turso",409);
  if(!validAddress(body.shippingAddress)) return fail("Endereço obrigatório",422);
  await authSchema();await ensureOrderSchema();
