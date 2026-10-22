@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import QRCode from "qrcode";
 import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
@@ -37,7 +38,9 @@ export async function GET(request: Request) {
     if (!record) return NextResponse.json({error:"Cobrança ainda não localizada"},{status:404});
     const payment=await fetchProviderPayment(record.provider_payment_id,token);
     if (Number(payment.transaction_amount)!==Number(order.total)) return NextResponse.json({error:"Valor divergente"},{status:409});
-    return NextResponse.json(paymentDisplay(payment,orderId),{headers:{"Cache-Control":"no-store"}});
+    const display = paymentDisplay(payment,orderId);
+    if (!display.qr) display.qr = await QRCode.toDataURL(display.payload, { width: 512, margin: 4 });
+    return NextResponse.json(display,{headers:{"Cache-Control":"no-store"}});
   } catch {return NextResponse.json({error:"Não foi possível recuperar a cobrança"},{status:503});}
 }
 
@@ -103,7 +106,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Conciliação pendente. Não gere outro pedido." }, { status: 503 });
       }
     }
-    return NextResponse.json(paymentDisplay(payment,orderId), { headers: { "Cache-Control": "no-store" } });
+    const display = paymentDisplay(payment,orderId);
+    if (!display.qr) display.qr = await QRCode.toDataURL(display.payload, { width: 512, margin: 4 });
+    return NextResponse.json(display, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "Não foi possível processar a cobrança" }, { status: 503 });
   }
