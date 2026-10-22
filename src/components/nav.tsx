@@ -1,3 +1,4 @@
+import Link from "next/link";
 "use client";
 
 import { useState } from "react";
@@ -15,12 +16,12 @@ export function Nav() {
     <header className="fixed top-0 left-0 right-0 z-50 h-[72px] flex items-center">
       <div className="absolute inset-0 border-b border-white/[0.06] bg-zinc-950/80 backdrop-blur-xl" />
       <nav className="relative max-w-7xl mx-auto px-6 w-full flex items-center justify-between">
-        <a
+        <Link
           href="/"
           className="text-white font-semibold tracking-[-0.03em] text-lg select-none z-20"
         >
           tynderella
-        </a>
+        </Link>
 
         {/* Desktop nav links */}
         <ul className="hidden md:flex items-center gap-8">
