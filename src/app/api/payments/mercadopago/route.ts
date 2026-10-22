@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { handleTursoPayment } from "@/lib/turso-payment-api";
 
 export const dynamic = "force-dynamic";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -20,6 +21,7 @@ function paymentDisplay(payment: { external_reference?: string; payment_method_i
   return { orderId, payload: details.qr_code, qr: details.qr_code_base64 ? `data:image/png;base64,${details.qr_code_base64}` : null, status: payment.status, expiresAt: payment.date_of_expiration };
 }
 export async function GET(request: Request) {
+  if(process.env.DATABASE_PROVIDER==="turso") return handleTursoPayment(request,"GET");
   try {
     if (process.env.PAYMENT_PROVIDER !== "mercadopago") return NextResponse.json({error:"Pagamento indisponível"},{status:503});
     const bearer = request.headers.get("authorization")?.match(/^Bearer (.+)$/)?.[1];
@@ -42,6 +44,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if(process.env.DATABASE_PROVIDER==="turso") return handleTursoPayment(request,"POST");
   try {
     if (process.env.PAYMENT_PROVIDER !== "mercadopago")
       return NextResponse.json({ error: "Pagamentos automáticos indisponíveis" }, { status: 503 });
