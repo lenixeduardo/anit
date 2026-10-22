@@ -1,9 +1,9 @@
-name: ANIT quality checks
+name: SEVEN quality checks
 on:
   pull_request:
     branches: [main, chore/fase-1-fundacao-anit]
   push:
-    branches: [feat/fase-2-pagamentos, chore/fase-6-qa-release, fix/consolidacao-main-anit]
+    branches: [feat/fase-2-pagamentos, chore/fase-6-qa-release, fix/consolidacao-main-anit, feature/better-sqlite3-backend]
 permissions:
   contents: read
 jobs:
