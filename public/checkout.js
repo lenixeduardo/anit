@@ -3,7 +3,7 @@
   const $ = id => document.getElementById(id);
   const money = n => Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const message = text => { $('message').textContent = text; };
-  let busy = false, session, paymentProvider = 'legacy', shippingEnabled = false, selectedShipping = null, shippingExpires = 0, subtotal = 0, discount = 0;
+  let busy = false, session, databaseProvider = 'legacy', paymentProvider = 'legacy', shippingEnabled = false, selectedShipping = null, shippingExpires = 0, subtotal = 0, discount = 0;
   function hasAddress() { return session && window.anitValidShippingAddress?.(window.anitShippingAddress); }
   function canGenerate() { return (paymentProvider !== 'mercadopago' || /^\d{11}$/.test(($('payer-cpf')?.value || '').replace(/\D/g,''))) && hasAddress() && (!shippingEnabled || (selectedShipping && shippingExpires > Date.now())); }
   function estimate() {
@@ -40,14 +40,23 @@
     if (!Array.isArray(cart) || !cart.length) { message('Seu carrinho está vazio. Escolha os produtos na loja.'); return; }
     const addressState = await window.anitAddressReady;
     const client = addressState?.client;
-    session = (await client?.auth.getSession())?.data.session;
-    if (!session) { message('Faça login para finalizar.'); location.href = 'login.html?next=/checkout.html'; return; }
-    client.auth.onAuthStateChange((event, current) => { session = current; refreshButton(); if (!current) location.href = 'login.html?next=/checkout.html'; });
+    // Resolve provider before deciding which session is authoritative.
     const configResponse = await fetch('/api/config', { cache: 'no-store' });
     if (!configResponse.ok) throw new Error('Não foi possível carregar o checkout. Recarregue a página.');
     const checkoutConfig = await configResponse.json();
     shippingEnabled = checkoutConfig.shippingEnabled === true;
     paymentProvider = checkoutConfig.paymentProvider || 'legacy';
+    databaseProvider = checkoutConfig.databaseProvider || 'legacy';
+    if (databaseProvider === 'turso') {
+      const authResponse = await fetch('/api/auth/local', {credentials:'same-origin',cache:'no-store'});
+      if (!authResponse.ok) throw new Error('Não foi possível validar a sessão Turso.');
+      const auth = await authResponse.json();
+      session = auth.user ? {user:auth.user,access_token:''} : null;
+    } else {
+      session = (await client?.auth.getSession())?.data.session;
+      client?.auth.onAuthStateChange((event, current) => { session = current; refreshButton(); if (!current) location.href = 'login.html?next=/checkout.html'; });
+    }
+    if (!session) { message('Faça login para finalizar.'); location.href = 'login.html?next=/checkout.html'; return; }
     $('payer-info').hidden = paymentProvider !== 'mercadopago';
     $('payer-cpf').addEventListener('input', refreshButton);
     $('payment-advice').textContent = paymentProvider === 'mercadopago' ? 'A confirmação será feita automaticamente após processamento pelo provedor. Consulte Meus pedidos.' : 'O pedido aguarda confirmação manual pela loja.';
@@ -82,7 +91,7 @@
       return { id: product.id, qty: item.qty };
     });
     const coupon = sessionStorage.getItem('anit-checkout-coupon') || '';
-    discount = coupon === 'PRINCESS10' ? Math.round(subtotal * 10) / 100 : 0;
+    discount = databaseProvider !== 'turso' && coupon === 'PRINCESS10' ? Math.round(subtotal * 10) / 100 : 0;
     estimate();
     if (shippingEnabled) {
       resetShipping();
@@ -124,9 +133,9 @@
       if (!canGenerate()) { message(hasAddress() ? 'Calcule e selecione um frete válido para continuar.' : 'Cadastre e salve um endereço completo para continuar.'); $('endereco').scrollIntoView(); return; }
       busy = true; refreshButton(); message('Criando pedido…');
       try {
-        session = (await client.auth.getSession()).data.session;
+        session = databaseProvider === 'turso' ? (await (await fetch('/api/auth/local',{credentials:'same-origin',cache:'no-store'})).json()).user && session : (await client.auth.getSession()).data.session;
         if (!session) throw new Error('Sessão expirada. Faça login novamente.');
-        const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token }, body: JSON.stringify({ orderId, items: cart, coupon, ...(shippingEnabled ? { shippingQuoteId: selectedShipping.quoteId } : {}) }) });
+        const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token }, body: JSON.stringify({ orderId, items: cart, coupon, ...(databaseProvider === 'turso' ? {shippingAddress:window.anitShippingAddress} : {}), ...(shippingEnabled ? { shippingQuoteId: selectedShipping.quoteId } : {}) }) });
         const data = await response.json();
         if (!response.ok || !data.success) {
           if (data.code === 'ADDRESS_REQUIRED') window.anitShippingAddress = null;
