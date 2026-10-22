@@ -30,7 +30,7 @@ export async function postTursoOrder(request:Request) {
   if(existing.rows.length){
    const row=existing.rows[0];
    if(String(row.user_id)!==user.id||String(row.status)!=="pending") {await tx.rollback();return fail("Pedido já existente ou indisponível",409);}
-   await tx.commit();return NextResponse.json({success:true,orderId:body.orderId,total:Number(row.total_cents)/100,status:"pending",shippingAddress:JSON.parse(String(row.shipping_address)),paymentProvider:"mercadopago"});
+   await tx.rollback();return fail("Pedido já existente; recupere a cobrança sem recriar o carrinho",409);
   }
   const ids=new Set<string>();let subtotal=0;const lines:Array<{id:string;qty:number;price:number}>=[];
   for(const item of body.items){
